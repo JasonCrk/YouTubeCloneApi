@@ -1,0 +1,18 @@
+argon2-cffi==21.3.0
+
+azure-core==1.27.1
+azure-storage-blob==12.16.0
+
+Django==4.2.2
+django-cors-headers==4.1.0
+django-environ==0.10.0
+
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.2.2
+
+djoser==2.2.0
+
+psycopg2==2.9.6
+
+# TESTING
+faker===18.11.2

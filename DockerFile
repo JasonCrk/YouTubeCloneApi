@@ -1,0 +1,13 @@
+FROM python
+
+RUN mkdir -p /home/YoutubeCloneApi/
+
+COPY requirements.txt /home/YoutubeCloneApi/
+
+RUN pip install -r /home/YoutubeCloneApi/requirements.txt
+
+COPY . /home/YoutubeCloneApi
+
+EXPOSE 8000
+
+CMD ["python", "/home/YoutubeCloneApi/manage.py", "runserver"]

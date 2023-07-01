@@ -1,0 +1,7 @@
+.vscode/
+youtube_clone_api_venv/
+tests/
+.pytest_cache/
+
+README.md
+.gitignore

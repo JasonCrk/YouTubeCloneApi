@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  youtube_clone_api:
+    build: .
+    ports:
+      - '4000:8000'
+    depends_on:
+      - youtube_clone_db
+    command: python manage.py runserver 0.0.0.0:8000
+
+  youtube_clone_db:
+    image: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=youtube_clone_password

@@ -1,0 +1,20 @@
+FROM python
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN mkdir -p /home/YoutubeCloneApi/
+
+WORKDIR /home/YoutubeCloneApi/
+
+COPY . /home/YoutubeCloneApi/
+
+COPY requirements.txt /home/YoutubeCloneApi/
+
+RUN pip install -r requirements.txt --no-cache-dir
+
+RUN python manage.py makemigrations
+
+EXPOSE 8000
+
+CMD ["python", "manage.py", "runserver"]
