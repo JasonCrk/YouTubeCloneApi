@@ -42,9 +42,6 @@ class UserAccountManager(BaseUserManager):
         user.is_admin = True
         user.save(using=self._db)
 
-        profile = Profile.objects.create(user=user)
-        profile.save()
-
         return user
 
 class UserAccount(AbstractBaseUser):
