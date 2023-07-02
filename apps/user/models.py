@@ -1,9 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+from apps.user_profile.models import Profile
+
 from apps.user.validations import validate_phone_number
 
 class UserAccountManager(BaseUserManager):
+
+    use_in_migrations = True
+
     def create_user(self, email, username, first_name, last_name, password=None, **entra_fields):
         if not email:
             raise ValueError('Users must have an email address')
@@ -19,6 +24,9 @@ class UserAccountManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
+        profile = Profile.objects.create(user=user)
+        profile.save()
+
         return user
 
     def create_superuser(self, email, username, first_name, last_name, password=None, **entra_fields):
@@ -33,6 +41,9 @@ class UserAccountManager(BaseUserManager):
 
         user.is_admin = True
         user.save(using=self._db)
+
+        profile = Profile.objects.create(user=user)
+        profile.save()
 
         return user
 
