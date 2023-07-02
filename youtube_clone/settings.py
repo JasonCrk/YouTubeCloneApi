@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'djoser',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'apps.user'
+    'apps.user',
+    'apps.user_profile'
 ]
 
 MIDDLEWARE = [
