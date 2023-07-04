@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'apps.user',
     'apps.user_profile',
     'apps.channel',
-    'apps.link'
+    'apps.link',
+    'apps.video'
 ]
 
 MIDDLEWARE = [
