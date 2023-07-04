@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 from apps.user_profile.models import Profile
+from apps.channel.models import Channel
 
 from apps.user.validations import validate_phone_number
 
@@ -26,6 +27,9 @@ class UserAccountManager(BaseUserManager):
 
         profile = Profile.objects.create(user=user)
         profile.save()
+
+        channel = Channel.objects.create(handle=user.username, user_profile=profile)
+        channel.save()
 
         return user
 
