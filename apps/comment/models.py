@@ -1,0 +1,18 @@
+from django.db import models
+
+from apps.user_profile.models import Profile
+from apps.video.models import Video
+
+class Comment(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comment_profile')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comment_video')
+    comment = models.ForeignKey('self', on_delete=models.CASCADE, related_name='comment_comment')
+    content = models.TextField()
+    publication_date = models.DateTimeField(auto_now_add=True, blank=True)
+    was_edited = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['publication_date']
+
+    def __str__(self) -> str:
+        return self.profile.user.username
