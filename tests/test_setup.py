@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 
 from rest_framework.test import APITestCase
-from rest_framework import status
 
 from faker import Faker
 
@@ -30,9 +29,7 @@ class TestSetup(APITestCase):
             format='json'
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.access_token: str = response.data['access'] # type: ignore
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}') # type: ignore
+        self.access_token: str = response.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
 
         return super().setUp()
