@@ -2,6 +2,7 @@ from django.db import models
 
 from apps.channel.models import Channel
 
+
 class Link(models.Model):
     position = models.PositiveSmallIntegerField()
     title = models.CharField(max_length=15)
@@ -11,5 +12,5 @@ class Link(models.Model):
     class Meta:
         ordering = ['title']
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.title

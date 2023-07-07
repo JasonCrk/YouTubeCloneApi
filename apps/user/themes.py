@@ -1,4 +1,4 @@
 THEMES = [
     ('light', 'Light'),
-    ('dark', 'Dark')
+    ('dark', 'Dark'),
 ]
