@@ -1,10 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-from apps.user_profile.models import Profile
 from apps.channel.models import Channel
 
 from apps.user.validations import validate_phone_number
+
+from apps.user.languages import LANGUAGES
+from apps.user.themes import THEMES
+
 
 class UserAccountManager(BaseUserManager):
 
@@ -25,10 +28,7 @@ class UserAccountManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        profile = Profile.objects.create(user=user)
-        profile.save()
-
-        channel = Channel.objects.create(handle=user.username, user_profile=profile)
+        channel = Channel.objects.create(handle=user.username, user=user)
         channel.save()
 
         return user
@@ -54,12 +54,13 @@ class UserAccount(AbstractBaseUser):
     first_name = models.CharField(verbose_name='user first name', max_length=25)
     last_name = models.CharField(verbose_name='user last name', max_length=25)
     phone_number = models.PositiveIntegerField(
-        verbose_name='user phone number',
         validators=[validate_phone_number],
         unique=True,
         null=True,
         blank=True
     )
+    language = models.CharField(choices=LANGUAGES, default='EN')
+    theme = models.CharField(choices=THEMES, default='light')
     id_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
@@ -68,18 +69,18 @@ class UserAccount(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
-    def __str__(self) -> str:
-        return self.email
+    def __str__(self):
+        return self.username
 
-    def get_full_name(self) -> str:
+    def get_full_name(self):
         return self.first_name + ' ' + self.last_name
 
-    def has_perm(self, perm, obj=None) -> bool:
+    def has_perm(self, perm, obj=None):
         return True
     
-    def has_module_perms(self, app_label) -> bool:
+    def has_module_perms(self, app_label):
         return True
 
     @property
-    def is_staff(self) -> bool:
+    def is_staff(self):
         return self.is_admin
