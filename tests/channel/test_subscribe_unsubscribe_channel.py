@@ -17,18 +17,18 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         faker = Faker()
 
         test_user_1 = UserAccount.objects.create_user(
+            username='TestMan1',
             email=faker.email(),
-            username=faker.name(),
-            first_name='Account2',
-            last_name='Test2',
-            password='AccountTestPassword2'
+            first_name=faker.first_name(),
+            last_name=faker.last_name(),
+            password='AccountTestPassword1'
         )
 
         self.test_user_2 = UserAccount.objects.create_user(
+            username='TestMan2',
             email=faker.email(),
-            username=faker.name(),
-            first_name='Account2',
-            last_name='Test2',
+            first_name=faker.first_name(),
+            last_name=faker.last_name(),
             password='AccountTestPassword2'
         )
 

@@ -13,10 +13,10 @@ class TestSetup(APITestCase):
         self.create_jwt_url = '/api/auth/jwt/create'
 
         self.user = UserAccount.objects.create_superuser(
-            username=faker.name(),
+            username='TestMan',
             email=faker.email(),
-            first_name='Account',
-            last_name='Test',
+            first_name=faker.first_name(),
+            last_name=faker.last_name(),
             password='AccountTestPassword'
         )
 
