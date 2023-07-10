@@ -1,3 +1,6 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import Error as DBError
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -100,4 +103,37 @@ class EditChannel(APIView):
 
         return Response({
             'message': 'The channel has been successfully updated'
+        }, status=status.HTTP_200_OK)
+
+
+class DeleteChannel(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, channel_id, format=None):
+        if Channel.objects.filter(user__pk=request.user.pk).count() < 2:
+            return Response({
+                'message': "You can't delete your last channel"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            channel = Channel.objects.get(id=channel_id)
+        except ObjectDoesNotExist:
+            return Response({
+                'message': 'The channel does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if channel.user.pk != request.user.pk:
+            return Response({
+                'message': 'You are not a owner of this channel'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            channel.delete()
+        except DBError:
+            return Response({
+                'message': 'The channel could not be deleted, please try again later'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'message': 'The channel has been deleted'
         }, status=status.HTTP_200_OK)
