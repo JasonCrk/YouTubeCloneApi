@@ -8,6 +8,8 @@ from apps.user.validations import validate_phone_number
 from apps.user.languages import LANGUAGES
 from apps.user.themes import THEMES
 
+from .utils.transform_username_to_handle import username_to_handle
+
 
 class UserAccountManager(BaseUserManager):
 
@@ -28,7 +30,10 @@ class UserAccountManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        channel = Channel.objects.create(handle=user.username, user=user)
+        channel = Channel.objects.create(
+            handle=username_to_handle(user.username),
+            user=user
+        )
         channel.save()
 
         return user
@@ -50,7 +55,7 @@ class UserAccountManager(BaseUserManager):
 
 class UserAccount(AbstractBaseUser):
     email = models.EmailField(verbose_name='user e-mail', unique=True, max_length=150)
-    username = models.CharField(unique=True, max_length=20)
+    username = models.CharField(max_length=25)
     first_name = models.CharField(verbose_name='user first name', max_length=25)
     last_name = models.CharField(verbose_name='user last name', max_length=25)
     phone_number = models.PositiveIntegerField(
