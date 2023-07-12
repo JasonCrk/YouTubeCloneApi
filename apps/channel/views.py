@@ -9,8 +9,39 @@ from rest_framework import status
 
 from apps.channel.models import Channel, ChannelSubscription
 
+from apps.channel.serializers import ChannelSerializer
+
 from cloudinary.exceptions import Error as CloudinaryUpdateError
 from youtube_clone.utils.storage import upload_image
+
+
+class CreateChannel(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        channel_data = request.data
+
+        channel_validation = ChannelSerializer(data={'name': channel_data['name']})
+
+        if not channel_validation.is_valid():
+            return Response({
+                'errors': channel_validation.errors
+            }, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        if Channel.objects.filter(user=request.user).count() == 10:
+            return Response({
+                'message': "You can't have more than 10 channels"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        Channel.create(
+            handle=channel_data['name'],
+            name=channel_data['name'],
+            user=request.user
+        ).save()
+
+        return Response({
+            'message': 'The channel has been created'
+        }, status=status.HTTP_200_OK)
 
 
 class SubscribeAndUnsubscribeChannel(APIView):
