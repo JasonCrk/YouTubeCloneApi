@@ -8,8 +8,6 @@ from apps.user.validations import validate_phone_number
 from apps.user.languages import LANGUAGES
 from apps.user.themes import THEMES
 
-from .utils.transform_username_to_handle import username_to_handle
-
 
 class UserAccountManager(BaseUserManager):
 
@@ -31,7 +29,7 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
 
         channel = Channel.objects.create(
-            handle=username_to_handle(user.username),
+            handle=user.username,
             user=user
         )
         channel.save()
