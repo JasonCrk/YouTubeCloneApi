@@ -12,17 +12,17 @@ class Channel(models.Model):
     description = models.TextField(null=True, blank=True)
     joined = models.DateTimeField(auto_now_add=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='channel_user')
+    name = models.CharField(verbose_name='channel name', max_length=25)
     handle = models.CharField(blank=True, unique=True, max_length=28)
     contact_email = models.EmailField(verbose_name='Contact email', null=True, blank=True)
     subscription = models.ManyToManyField(User, through='ChannelSubscription', related_name='channel_subscription')
 
     def __str__(self):
-        return self.user_profile.user.username
+        return self.user.username
 
     @classmethod
-    def create(cls, handle, user):
-        handle = username_to_handle(handle)
-        return cls(handle=handle, user=user)
+    def create(cls, handle, name, user):
+        return cls(handle=username_to_handle(handle), name=name, user=user)
 
 
 class ChannelSubscription(models.Model):
@@ -31,4 +31,4 @@ class ChannelSubscription(models.Model):
     subscription_date = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __str__(self):
-        return self.channel.handle
+        return self.user.username

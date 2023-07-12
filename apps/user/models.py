@@ -28,8 +28,9 @@ class UserAccountManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        channel = Channel.objects.create(
+        channel = Channel.create(
             handle=user.username,
+            name=user.username,
             user=user
         )
         channel.save()
@@ -50,6 +51,7 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
 
         return user
+
 
 class UserAccount(AbstractBaseUser):
     email = models.EmailField(verbose_name='user e-mail', unique=True, max_length=150)
