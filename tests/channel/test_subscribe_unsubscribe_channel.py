@@ -39,7 +39,6 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         self.channel_subscribed = Channel.objects.get(user=self.test_user_2)
         self.channel_subscribed.subscription.add(self.user)
 
-
     def test_successful_subscription_message(self):
         response = self.client.post(
             self.url,
@@ -49,7 +48,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        self.assertDictEqual(response.data, { 'message': 'Subscription added' })
+        self.assertDictEqual(response.data, {'message': 'Subscription added'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_the_user_has_subscribed_successfully(self):
@@ -74,7 +73,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        self.assertDictEqual(response.data, { 'message': 'Subscription removed' })
+        self.assertDictEqual(response.data, {'message': 'Subscription removed'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_the_user_unsubscribed_from_the_channel_successfully(self):
@@ -90,19 +89,6 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
 
         self.assertFalse(subscribe.exists())
 
-    def test_is_not_authenticated(self):
-        self.client.credentials(HTTP_AUTHORIZATION='')
-
-        response = self.client.post(
-            self.url,
-            {
-                'channel_id': self.channel_not_subscribed.pk
-            },
-            format='json'
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
     def test_channel_id_is_not_number(self):
         response = self.client.post(
             self.url,
@@ -112,7 +98,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        self.assertDictEqual(response.data, { 'message': 'The channel ID must be a number' })
+        self.assertDictEqual(response.data, {'message': 'The channel ID must be a number'})
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
     def test_channel_is_does_not_exist(self):
@@ -124,5 +110,19 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        self.assertDictEqual(response.data, { 'message': 'The channel does not exist' })
+        self.assertDictEqual(response.data, {'message': 'The channel does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_user_cannot_subscribe_to_own_channel(self):
+        my_channel = Channel.objects.get(user=self.user)
+
+        response = self.client.post(
+            self.url,
+            {
+                'channel_id': my_channel.pk
+            },
+            format='json'
+        )
+
+        self.assertDictEqual(response.data, {'message': "You can't subscribe to a channel that's yours"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

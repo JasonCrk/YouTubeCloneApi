@@ -24,12 +24,17 @@ class SubscribeAndUnsubscribeChannel(APIView):
                 'message': 'The channel ID must be a number'
             }, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        if not Channel.objects.filter(id=channel_id).exists():
+        try:
+            channel = Channel.objects.get(id=channel_id)
+        except ObjectDoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        channel = Channel.objects.get(id=channel_id)
+        if channel.user.pk == request.user.pk:
+            return Response({
+                'message': "You can't subscribe to a channel that's yours"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if ChannelSubscription.objects.filter(user=request.user, channel=channel):
             channel_subscription = ChannelSubscription.objects.get(user=request.user, channel=channel)
@@ -58,14 +63,12 @@ class EditChannel(APIView):
                 'message': 'You need to update at least one attribute'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        channel = Channel.objects.filter(id=channel_id)
-
-        if not channel.exists():
+        try:
+            channel = Channel.objects.get(id=channel_id)
+        except ObjectDoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
-
-        channel = channel[0]
 
         if channel.user.pk != request.user.pk:
             return Response({
