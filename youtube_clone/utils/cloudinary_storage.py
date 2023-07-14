@@ -11,8 +11,12 @@ cloudinary.config(
 
 import cloudinary.uploader
 
-def upload_video_with_cloudinary(video, folder):
-    upload_response = cloudinary.uploader.upload_large(video, folder=f'YOUTUBE_CLONE/{folder}')
+def upload_video_with_cloudinary(video):
+    upload_response = cloudinary.uploader.upload_large(
+        video,
+        folder=f'YOUTUBE_CLONE/videos',
+        resource_type='video'
+    )
     return dict(upload_response).get('url')
 
 def upload_image_with_cloudinary(image, folder):
