@@ -7,12 +7,12 @@ debug = os.environ.get('DEBUG')
 
 def upload_image(image, folder):
     if eval(debug):
-        return upload_video_with_cloudinary(image, folder)
+        return upload_image_with_cloudinary(image, folder)
 
     return upload_image_with_azure_storage(image)
 
-def upload_video(video, folder):
+def upload_video(video):
     if eval(debug):
-        return upload_video_with_cloudinary(video, folder)
+        return upload_video_with_cloudinary(video)
 
     return upload_video_with_azure_storage(video)
