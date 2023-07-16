@@ -16,7 +16,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
 
         faker = Faker()
 
-        test_user_1 = UserAccount.objects.create_user(
+        user_1 = UserAccount.objects.create_user(
             username='TestMan1',
             email=faker.email(),
             first_name=faker.first_name(),
@@ -24,7 +24,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             password='AccountTestPassword1'
         )
 
-        self.test_user_2 = UserAccount.objects.create_user(
+        self.user_2 = UserAccount.objects.create_user(
             username='TestMan2',
             email=faker.email(),
             first_name=faker.first_name(),
@@ -34,10 +34,10 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
 
         self.url = reverse('subscribe_unsubscribe_channel')
 
-        self.channel_not_subscribed = Channel.objects.get(user=test_user_1)
+        self.channel_not_subscribed = Channel.objects.get(user=user_1)
 
-        self.channel_subscribed = Channel.objects.get(user=self.test_user_2)
-        self.channel_subscribed.subscription.add(self.user)
+        self.channel_subscribed = Channel.objects.get(user=self.user_2)
+        self.channel_subscribed.subscriptions.add(self.user.current_channel)
 
     def test_successful_subscription_message(self):
         response = self.client.post(
@@ -60,9 +60,12 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        subscribe = ChannelSubscription.objects.filter(user=self.user, channel=self.channel_not_subscribed)
+        subscription_exists = ChannelSubscription.objects.filter(
+            subscriber=self.user.current_channel,
+            subscribing=self.channel_not_subscribed
+        ).exists()
 
-        self.assertEqual(subscribe.exists(), True)
+        self.assertEqual(subscription_exists, True)
 
     def test_unsubscribe_message_successfully(self):
         response = self.client.post(
@@ -85,7 +88,10 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
             format='json'
         )
 
-        subscribe = ChannelSubscription.objects.filter(user=self.user, channel=self.channel_subscribed)
+        subscribe = ChannelSubscription.objects.filter(
+            subscriber=self.user.current_channel,
+            subscribing=self.channel_not_subscribed
+        )
 
         self.assertFalse(subscribe.exists())
 
@@ -105,7 +111,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         response = self.client.post(
             self.url,
             {
-                'channel_id': 10
+                'channel_id': 1000
             },
             format='json'
         )

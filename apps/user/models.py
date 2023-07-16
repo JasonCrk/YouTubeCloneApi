@@ -10,7 +10,6 @@ from apps.user.themes import THEMES
 
 
 class UserAccountManager(BaseUserManager):
-
     use_in_migrations = True
 
     def create_user(self, email, username, first_name, last_name, password=None, **entra_fields):
@@ -28,12 +27,14 @@ class UserAccountManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        channel = Channel.create(
-            handle=user.username,
+        channel = Channel.objects.create(
             name=user.username,
             user=user
         )
         channel.save()
+
+        user.current_channel = channel
+        user.save(using=self._db)
 
         return user
 
@@ -58,6 +59,7 @@ class UserAccount(AbstractBaseUser):
     username = models.CharField(max_length=25)
     first_name = models.CharField(verbose_name='user first name', max_length=25)
     last_name = models.CharField(verbose_name='user last name', max_length=25)
+    current_channel = models.OneToOneField(Channel, on_delete=models.PROTECT, null=True)
     phone_number = models.PositiveIntegerField(
         validators=[validate_phone_number],
         unique=True,

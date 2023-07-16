@@ -1,10 +1,11 @@
 from django.urls import path
 
-from .views import SubscribeAndUnsubscribeChannel, EditChannel, DeleteChannel, CreateChannel
+from apps.channel import views
 
 urlpatterns = [
-    path('create/', CreateChannel.as_view(), name='create_channel'),
-    path('subscribe/', SubscribeAndUnsubscribeChannel.as_view(), name='subscribe_unsubscribe_channel'),
-    path('<int:channel_id>/', EditChannel.as_view(), name='edit_channel'),
-    path('<int:channel_id>/delete', DeleteChannel.as_view(), name='delete_channel')
+    path('create/', views.CreateChannelView.as_view(), name='create_channel'),
+    path('switch/', views.SwitchChannelView.as_view(), name='switch_channel'),
+    path('subscribe/', views.SubscribeAndUnsubscribeChannelView.as_view(), name='subscribe_unsubscribe_channel'),
+    path('<int:channel_id>/', views.EditChannelView.as_view(), name='edit_channel'),
+    path('<int:channel_id>/delete/', views.DeleteChannelView.as_view(), name='delete_channel')
 ]

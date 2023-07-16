@@ -1,5 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,13 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video
-from apps.channel.models import Channel
 
 from apps.video.serializers import ValidationVideoSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
-class CreateVideo(APIView):
+
+class CreateVideoView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser]
 
@@ -26,25 +24,6 @@ class CreateVideo(APIView):
             return Response({
                 'errors': video_data_validation.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            channel_id = int(request.headers['X-Channel'])
-        except ValueError:
-            return Response({
-                'message': 'The channel ID is not a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            channel = Channel.objects.get(id=channel_id)
-        except ObjectDoesNotExist:
-            return Response({
-                'message': 'The channel does not exist'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        if channel.user != request.user:
-            return Response({
-                'message': 'You are not the owner of this channel'
-            }, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             uploaded_thumbnail_url = upload_image(video_data.get('thumbnail'), 'thumbnails')
@@ -65,7 +44,7 @@ class CreateVideo(APIView):
             thumbnail=uploaded_thumbnail_url,
             title=video_data['title'],
             description=video_data['description'],
-            channel=channel
+            channel=request.user.current_channel
         ).save()
 
         return Response({
