@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views import CreateVideo
+from apps.video import views
 
 urlpatterns = [
-    path('create/', CreateVideo.as_view(), name='upload_video')
+    path('create/', views.CreateVideoView.as_view(), name='upload_video')
 ]

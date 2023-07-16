@@ -1,8 +1,17 @@
 from rest_framework import serializers
 
+from apps.video.models import Video
 
-class ValidationVideoSerializer(serializers.Serializer):
+
+class ValidationVideoSerializer(serializers.ModelSerializer):
     video = serializers.FileField()
     thumbnail = serializers.FileField()
-    title = serializers.CharField(max_length=45)
-    description = serializers.CharField(allow_blank=True)
+
+    class Meta:
+        model = Video
+        fields = (
+            'title',
+            'description',
+            'video',
+            'thumbnail'
+        )

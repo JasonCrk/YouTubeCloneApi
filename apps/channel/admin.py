@@ -8,8 +8,8 @@ class ChannelAdmin(admin.ModelAdmin):
     ordering = ['user']
 
 class ChannelSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'channel', 'subscription_date']
-    ordering = ['user']
+    list_display = ['subscriber', 'subscribing', 'subscription_date']
+    ordering = ['subscriber']
 
 admin.site.register(Channel, ChannelAdmin)
 admin.site.register(ChannelSubscription, ChannelSubscriptionAdmin)

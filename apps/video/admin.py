@@ -8,12 +8,12 @@ class VideoAdmin(admin.ModelAdmin):
     ordering = ['title']
 
 class VideoViewAdmin(admin.ModelAdmin):
-    list_display = ['user', 'video', 'count', 'last_view_date']
+    list_display = ['channel', 'video', 'count', 'last_view_date']
     ordering = ['last_view_date']
 
 class LikedVideoAdmin(admin.ModelAdmin):
-    list_display = ['user', 'video', 'liked']
-    ordering = ['user']
+    list_display = ['channel', 'video', 'liked']
+    ordering = ['channel']
 
 admin.site.register(Video, VideoAdmin)
 admin.site.register(VideoView, VideoViewAdmin)

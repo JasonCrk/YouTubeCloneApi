@@ -1,7 +1,6 @@
 from django.db import models
 
 from apps.channel.models import Channel
-from apps.user.models import UserAccount
 
 
 class Video(models.Model):
@@ -11,8 +10,8 @@ class Video(models.Model):
     description = models.TextField(null=True, blank=True)
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
-    views = models.ManyToManyField(UserAccount, through='VideoView', related_name='video_views')
-    likes = models.ManyToManyField(UserAccount, through='LikedVideo', related_name='video_likes')
+    views = models.ManyToManyField(Channel, through='VideoView', related_name='video_views')
+    likes = models.ManyToManyField(Channel, through='LikedVideo', related_name='video_likes')
 
     class Meta:
         ordering = ['title']
@@ -22,19 +21,19 @@ class Video(models.Model):
 
 
 class VideoView(models.Model):
-    user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     count = models.PositiveBigIntegerField(default=1)
     last_view_date = models.DateTimeField(auto_now=True, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.channel.name
 
 
 class LikedVideo(models.Model):
-    user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL, null=True)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     liked = models.BooleanField(default=True, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.channel.name
