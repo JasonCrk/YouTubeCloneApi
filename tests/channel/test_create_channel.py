@@ -48,7 +48,7 @@ class TestCreateChannel(TestSetup):
         )
 
         self.assertNotEqual(response.data.get('errors').get('name'), None)
-        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_to_return_error_response_if_the_name_send_is_too_long(self):
         response = self.client.post(
@@ -60,13 +60,12 @@ class TestCreateChannel(TestSetup):
         )
 
         self.assertNotEqual(response.data.get('errors').get('name'), None)
-        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_to_return_error_response_if_the_user_has_10_channels(self):
         for _ in range(9):
-            Channel.create(
+            Channel.objects.create(
                 name=self.user.username,
-                handle=self.user.username,
                 user=self.user
             ).save()
 

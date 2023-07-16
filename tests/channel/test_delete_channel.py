@@ -7,20 +7,34 @@ from tests.test_setup import TestSetup
 from apps.user.models import UserAccount
 from apps.channel.models import Channel
 
+from faker import Faker
+
+faker = Faker()
+
 
 class TestDeleteChannel(TestSetup):
     def setUp(self):
         super().setUp()
 
-        self.test_channel = Channel.objects.create(handle='test handle', user=self.user)
+        self.test_channel = Channel.objects.create(name=faker.first_name(), user=self.user)
 
         self.url = reverse('delete_channel', kwargs={'channel_id': self.test_channel.pk})
 
+    def test_to_return_error_response_if_the_user_wants_to_delete_the_channel_they_are_currently_on(self):
+        url = reverse('delete_channel', kwargs={'channel_id': self.user.current_channel.pk})
+
+        response = self.client.delete(url)
+
+        self.assertDictEqual(response.data, {'message': 'Cannot delete a channel that is currently in use'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_to_return_error_response_if_the_user_wants_to_delete_their_only_channel(self):
-        channel = Channel.objects.get(user=self.user, handle=self.user.username)
+        channel = Channel.objects.get(id=self.test_channel.pk)
         channel.delete()
 
-        response = self.client.delete(self.url)
+        url = reverse('delete_channel', kwargs={'channel_id': self.user.current_channel.pk})
+
+        response = self.client.delete(url)
 
         self.assertDictEqual(response.data, {'message': "You can't delete your last channel"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -32,10 +46,6 @@ class TestDeleteChannel(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_to_return_an_error_response_if_the_user_wants_to_delete_a_channel_that_they_dont_own(self):
-        from faker import Faker
-
-        faker = Faker()
-
         test_user = UserAccount.objects.create_user(
             email=faker.email(),
             username='TestManDeleteChannel',
@@ -61,7 +71,7 @@ class TestDeleteChannel(TestSetup):
         self.assertFalse(channel_exist)
 
     def test_to_return_error_response_if_the_channel_does_not_exist(self):
-        url = reverse('delete_channel', kwargs={'channel_id': 12})
+        url = reverse('delete_channel', kwargs={'channel_id': 100})
 
         response = self.client.delete(url)
 
