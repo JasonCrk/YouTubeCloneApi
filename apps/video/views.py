@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo
 
-from apps.video.serializers import ValidationVideoSerializer, VideoLikeValidatorSerializer
+from apps.video.serializers import VideoSerializer, ValidationVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
@@ -113,4 +113,51 @@ class LikeAndDislikeVideoView(APIView):
 
         return Response({
             'message': message
+        }, status=status.HTTP_200_OK)
+
+
+class EditVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [FormParser, MultiPartParser]
+
+    def patch(self, request, video_id, format=None):
+        data = request.data.dict()
+
+        if len(data.keys()) == 0:
+            return Response({
+                'message': 'A minimum of 1 value is required to update the video'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            video = Video.objects.get(id=video_id)
+        except ObjectDoesNotExist:
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if video.channel != request.user.current_channel:
+            return Response({
+                'message': 'You are not a owner of this video'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        updated_video = UpdateVideoValidatorSerializer(video, data=data, partial=True)
+
+        if not updated_video.is_valid():
+            return Response({
+                'errors': updated_video.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if data.get('thumbnail') != None:
+            try:
+                thumbnail_image_url = upload_image(data['thumbnail'], 'thumbnails')
+                updated_video.validated_data['thumbnail'] = thumbnail_image_url
+            except:
+                return Response({
+                    'message': 'Failed to upload video thumbnail, please try again later'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_video.save()
+
+        return Response({
+            'message': 'The video has been updated'
         }, status=status.HTTP_200_OK)

@@ -16,5 +16,7 @@ djoser==2.2.0
 
 psycopg2==2.9.6
 
+Pillow==10.0.0
+
 # TESTING
 faker===18.11.2
