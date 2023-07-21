@@ -48,6 +48,7 @@ class UserAccountManager(BaseUserManager):
             **entra_fields
         )
 
+        user.is_active = True
         user.is_admin = True
         user.save(using=self._db)
 
@@ -68,7 +69,7 @@ class UserAccount(AbstractBaseUser):
     )
     language = models.CharField(choices=LANGUAGES, default='EN')
     theme = models.CharField(choices=THEMES, default='light')
-    id_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
     objects = UserAccountManager()
