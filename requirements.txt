@@ -1,22 +1,30 @@
-argon2-cffi==21.3.0
-
-azure-core==1.27.1
-azure-storage-blob==12.16.0
-
-cloudinary===1.33.0
-
+# CORE
 Django==4.2.2
 django-cors-headers==4.1.0
 django-environ==0.10.0
 
+# REST API
 djangorestframework==3.14.0
+
+# AUTHENTICATION
+djoser==2.2.0
 djangorestframework-simplejwt==5.2.2
 
-djoser==2.2.0
-
+# DATABASE
 psycopg2==2.9.6
 
+# STORAGE (DEV)
+cloudinary===1.33.0
+
+# STORAGE (PRODUCTION)
+azure-core==1.27.1
+azure-storage-blob==12.16.0
+
+# HASH
+argon2-cffi==21.3.0
+
+# IMAGES
 Pillow==10.0.0
 
 # TESTING
-faker===18.11.2
+factory-boy===3.3.0

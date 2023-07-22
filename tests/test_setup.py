@@ -1,30 +1,22 @@
-from django.http import HttpResponse
-
 from rest_framework.test import APITestCase
 
-from faker import Faker
+from apps.user.models import UserAccount
+
+from tests.factories.UserAccountFactory import AdminFactory
+from tests.constants import TEST_PASSWORD
+
 
 class TestSetup(APITestCase):
     def setUp(self):
-        from apps.user.models import UserAccount
+        create_jwt_url = '/api/auth/jwt/create'
 
-        faker = Faker()
+        self.user: UserAccount = AdminFactory.create()
 
-        self.create_jwt_url = '/api/auth/jwt/create'
-
-        self.user = UserAccount.objects.create_superuser(
-            username='TestMan',
-            email=faker.email(),
-            first_name=faker.first_name(),
-            last_name=faker.last_name(),
-            password='AccountTestPassword'
-        )
-
-        response: HttpResponse = self.client.post(
-            self.create_jwt_url,
+        response = self.client.post(
+            create_jwt_url,
             {
                 'email': self.user.email,
-                'password': 'AccountTestPassword'
+                'password': TEST_PASSWORD
             },
             format='json'
         )

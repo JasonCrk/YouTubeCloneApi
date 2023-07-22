@@ -10,7 +10,7 @@ from rest_framework import status
 
 from apps.channel.models import Channel, ChannelSubscription
 
-from apps.channel.serializers import ChannelValidationSerializer, UpdateChannelValidationSerializer
+from apps.channel.serializers import CreateChannelValidationSerializer, UpdateChannelValidationSerializer
 
 from youtube_clone.utils.storage import upload_image
 
@@ -21,22 +21,22 @@ class CreateChannelView(APIView):
     def post(self, request, format=None):
         channel_data = request.data
 
-        channel_validation = ChannelValidationSerializer(data={'name': channel_data['name']})
+        channel_created = CreateChannelValidationSerializer(data={
+            'name': channel_data['name'],
+            'user': request.user.pk
+        })
 
-        if not channel_validation.is_valid():
+        if not channel_created.is_valid():
             return Response({
-                'errors': channel_validation.errors
+                'errors': channel_created.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if Channel.objects.filter(user=request.user).count() == 10:
+        if Channel.objects.filter(user=request.user).count() >= 10:
             return Response({
                 'message': "You can't have more than 10 channels"
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        Channel.objects.create(
-            name=channel_data['name'],
-            user=request.user
-        ).save()
+        channel_created.save()
 
         return Response({
             'message': 'The channel has been created'
@@ -90,9 +90,9 @@ class SubscribeAndUnsubscribeChannelView(APIView):
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if channel.user == request.user:
+        if channel == request.user.current_channel:
             return Response({
-                'message': "You can't subscribe to a channel that's yours"
+                'message': "Can't subscribe to itself"
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -118,7 +118,7 @@ class EditChannelView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser]
 
-    def patch(self, request, channel_id, format=None):
+    def patch(self, request, format=None):
         channel_data = request.data.dict()
 
         if len(channel_data.keys()) == 0:
@@ -126,56 +126,36 @@ class EditChannelView(APIView):
                 'message': 'You need to update at least one attribute'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        channel_data_validation = UpdateChannelValidationSerializer(data=channel_data)
+        updated_channel = UpdateChannelValidationSerializer(
+            request.user.current_channel,
+            data=channel_data,
+            partial=True
+        )
 
-        if not channel_data_validation.is_valid():
+        if not updated_channel.is_valid():
             return Response({
-                'errors': channel_data_validation.errors
+                'errors': updated_channel.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            channel = Channel.objects.get(id=channel_id)
-        except ObjectDoesNotExist:
-            return Response({
-                'message': 'The channel does not exist'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        if channel.user != request.user:
-            return Response({
-                'message': 'You are not a owner of this channel'
-            }, status=status.HTTP_401_UNAUTHORIZED)
 
         if channel_data.get('banner') != None:
             try:
                 banner_image_url = upload_image(channel_data.get('banner'), 'banners')
-                channel.banner_url = banner_image_url
+                updated_channel.validated_data['banner_url'] = banner_image_url
             except:
                 return Response({
-                    'message': 'Failed to update banner'
+                    'message': 'Failed to upload channel banner, please try again later'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         if channel_data.get('picture') != None:
             try:
                 picture_image_url = upload_image(channel_data.get('picture'), 'pictures')
-                channel.picture_url = picture_image_url
+                updated_channel.validated_data['picture_url'] = picture_image_url
             except:
                 return Response({
-                    'message': 'Failed to update picture'
+                    'message': 'Failed to upload channel picture, please try again later'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-        if channel_data.get('description') != None:
-            channel.description = channel_data.get('description')
-
-        if channel_data.get('name') != None:
-            channel.name = channel_data.get('name')
-
-        if channel_data.get('handle') != None:
-            channel.handle = channel_data.get('handle')
-
-        if channel_data.get('contact_email') != None:
-            channel.contact_email = channel_data.get('contact_email')
-
-        channel.save()
+        updated_channel.save()
 
         return Response({
             'message': 'The channel has been successfully updated'

@@ -3,21 +3,18 @@ from rest_framework import serializers
 from apps.channel.models import Channel
 
 
-class ChannelValidationSerializer(serializers.ModelSerializer):
+class CreateChannelValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Channel
         fields = (
-            'banner_url',
-            'picture_url',
-            'description',
             'name',
-            'handle',
+            'user'
         )
 
 
 class UpdateChannelValidationSerializer(serializers.ModelSerializer):
-    banner = serializers.FileField(required=False)
-    picture = serializers.FileField(required=False)
+    banner = serializers.ImageField(required=False)
+    picture = serializers.ImageField(required=False)
     name = serializers.CharField(max_length=25, required=False)
 
     class Meta:

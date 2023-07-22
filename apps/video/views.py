@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo
 
-from apps.video.serializers import VideoSerializer, ValidationVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
+from apps.video.serializers import ValidationVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
