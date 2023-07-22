@@ -161,3 +161,31 @@ class EditVideoView(APIView):
         return Response({
             'message': 'The video has been updated'
         }, status=status.HTTP_200_OK)
+
+
+class DeleteVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(id=video_id)
+        except ObjectDoesNotExist:
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if video.channel != request.user.current_channel:
+            return Response({
+                'message': 'You are not the owner of the video'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            video.delete()
+        except:
+            return Response({
+                'message': 'Video deletion failed, please try again later'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'message': 'The video has been deleted'
+        }, status=status.HTTP_200_OK)
