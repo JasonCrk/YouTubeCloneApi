@@ -12,5 +12,10 @@ urlpatterns = [
         '<int:comment_id>/create/',
         views.CreateCommentForCommentView.as_view(),
         name='create_comment_for_comment'
+    ),
+    path(
+        '<int:comment_id>/edit/',
+        views.EditCommentView.as_view(),
+        name='edit_comment'
     )
 ]
