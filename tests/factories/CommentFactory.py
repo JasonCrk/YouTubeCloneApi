@@ -12,5 +12,4 @@ class CommentFactory(factory.django.DjangoModelFactory):
 
     video = factory.SubFactory(VideoFactory)
     channel = factory.SubFactory(ChannelFactory)
-    comment = factory.SubFactory('tests.factories.CommentFactory')
     content = factory.Faker('paragraph')
