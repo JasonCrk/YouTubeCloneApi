@@ -38,7 +38,7 @@ class TestDeleteVideo(TestSetup):
         response = self.client.delete(url)
 
         self.assertDictEqual(response.data, {'message': 'The video does not exists'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_to_return_error_response_if_the_user_wants_to_delete_a_video_that_is_not_their_own(self):
         other_channel: Channel = ChannelFactory.create(user=self.user)
