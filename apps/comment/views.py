@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.comment.models import Comment
 from apps.video.models import Video
 
-from apps.comment.serializers import CreateCommentSerializer
+from apps.comment.serializers import CreateCommentSerializer, UpdateCommentSerializer
 
 
 class CreateVideoCommentView(APIView):
@@ -66,3 +66,33 @@ class CreateCommentForCommentView(APIView):
         return Response({
             'message': 'The comment has been created'
         }, status=status.HTTP_201_CREATED)
+
+
+class EditCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, comment_id, format=None):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({
+                'message': 'The comment does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if request.data.get('content') == comment.content:
+            return Response({
+                'message': 'The comment content has not been modified'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        comment_updated = UpdateCommentSerializer(comment, data={'content': request.data['content']}, partial=True)
+
+        if not comment_updated.is_valid():
+            return Response({
+                'errors': comment_updated.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        comment_updated.save()
+
+        return Response({
+            'message': 'The comment has been updated'
+        }, status=status.HTTP_200_OK)

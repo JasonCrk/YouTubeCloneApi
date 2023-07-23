@@ -12,3 +12,11 @@ class CreateCommentSerializer(serializers.ModelSerializer):
             'comment',
             'content',
         )
+
+
+class UpdateCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = (
+            'content',
+        )
