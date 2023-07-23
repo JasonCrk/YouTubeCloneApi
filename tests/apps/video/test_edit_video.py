@@ -5,8 +5,8 @@ from rest_framework import status
 
 from tests.test_setup import TestSetup
 
-from tests.factories.VideoFactory import VideoFactory
-from tests.factories.UserAccountFactory import UserFactory
+from tests.factories.video_factory import VideoFactory
+from tests.factories.user_account_factory import UserFactory
 
 from apps.video.models import Video
 from apps.user.models import UserAccount

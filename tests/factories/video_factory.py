@@ -2,7 +2,7 @@ import factory
 
 from apps.video.models import Video
 
-from tests.factories.ChannelFactory import ChannelFactory
+from tests.factories.channel_factory import ChannelFactory
 
 
 class VideoFactory(factory.django.DjangoModelFactory):

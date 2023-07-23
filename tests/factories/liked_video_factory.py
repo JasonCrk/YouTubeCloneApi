@@ -2,8 +2,8 @@ import factory
 
 from apps.video.models import LikedVideo
 
-from tests.factories.ChannelFactory import ChannelFactory
-from tests.factories.VideoFactory import VideoFactory
+from tests.factories.channel_factory import ChannelFactory
+from tests.factories.video_factory import VideoFactory
 
 class BaseLikedVideoFactory(factory.django.DjangoModelFactory):
     class Meta:

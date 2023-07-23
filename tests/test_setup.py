@@ -2,7 +2,7 @@ from rest_framework.test import APITestCase
 
 from apps.user.models import UserAccount
 
-from tests.factories.UserAccountFactory import AdminFactory
+from tests.factories.user_account_factory import AdminFactory
 from tests.constants import TEST_PASSWORD
 
 

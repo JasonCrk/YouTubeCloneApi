@@ -4,8 +4,8 @@ from rest_framework import status
 
 from tests.test_setup import TestSetup
 
-from tests.factories.VideoFactory import VideoFactory
-from tests.factories.ChannelFactory import ChannelFactory
+from tests.factories.video_factory import VideoFactory
+from tests.factories.channel_factory import ChannelFactory
 
 from apps.video.models import Video
 from apps.channel.models import Channel

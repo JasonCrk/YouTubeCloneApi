@@ -2,8 +2,8 @@ import factory
 
 from apps.comment.models import Comment
 
-from tests.factories.ChannelFactory import ChannelFactory
-from tests.factories.VideoFactory import VideoFactory
+from tests.factories.channel_factory import ChannelFactory
+from tests.factories.video_factory import VideoFactory
 
 
 class CommentFactory(factory.django.DjangoModelFactory):

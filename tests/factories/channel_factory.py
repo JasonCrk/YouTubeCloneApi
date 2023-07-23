@@ -2,7 +2,7 @@ import factory
 
 from apps.channel.models import Channel
 
-from tests.factories.UserAccountFactory import BaseUserFactory
+from tests.factories.user_account_factory import BaseUserFactory
 
 
 class ChannelFactory(factory.django.DjangoModelFactory):
