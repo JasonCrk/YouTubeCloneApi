@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from apps.comment.models import Comment
+from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
 
 from apps.comment.serializers import CreateCommentSerializer, UpdateCommentSerializer
@@ -66,6 +66,51 @@ class CreateCommentForCommentView(APIView):
         return Response({
             'message': 'The comment has been created'
         }, status=status.HTTP_201_CREATED)
+
+
+class LikeCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            comment_id = int(request.data['comment_id'])
+        except ValueError:
+            return Response({
+                'message': 'The comment ID must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({
+                'message': 'The comment does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        like_comment = LikedComment.objects.filter(
+            channel=request.user.current_channel,
+            comment=comment
+        ).first()
+
+        if like_comment != None:
+            if like_comment.liked:
+                like_comment.delete()
+
+                return Response({
+                    'message': 'Like comment removed'
+                }, status=status.HTTP_200_OK)
+
+            like_comment.liked = True
+            like_comment.save()
+        else:
+            LikedComment.objects.create(
+                channel=request.user.current_channel,
+                comment=comment,
+                liked=True
+            ).save()
+
+        return Response({
+            'message': 'Like comment added'
+        }, status=status.HTTP_200_OK)
 
 
 class EditCommentView(APIView):
