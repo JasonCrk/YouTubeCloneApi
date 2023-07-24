@@ -19,3 +19,10 @@ class LikeCommentFactory(BaseLikedCommentFactory):
         model = LikedComment
 
     liked = True
+
+
+class DislikeCommentFactory(BaseLikedCommentFactory):
+    class Meta:
+        model = LikedComment
+
+    liked = False
