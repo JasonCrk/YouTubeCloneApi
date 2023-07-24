@@ -96,3 +96,26 @@ class EditCommentView(APIView):
         return Response({
             'message': 'The comment has been updated'
         }, status=status.HTTP_200_OK)
+
+
+class DeleteCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, comment_id, format=None):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({
+                'message': 'The comment does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if comment.channel != request.user.current_channel:
+            return Response({
+                'message': 'You do not own this comment'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment.delete()
+
+        return Response({
+            'message': 'The comment has been deleted'
+        }, status=status.HTTP_200_OK)
