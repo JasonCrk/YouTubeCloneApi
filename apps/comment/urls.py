@@ -4,6 +4,11 @@ from apps.comment import views
 
 urlpatterns = [
     path(
+        'like/',
+        views.LikeCommentView.as_view(),
+        name='like_comment'
+    ),
+    path(
         'create/<int:video_id>/',
         views.CreateVideoCommentView.as_view(),
         name='create_video_comment'
