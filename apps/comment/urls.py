@@ -9,6 +9,11 @@ urlpatterns = [
         name='like_comment'
     ),
     path(
+        'dislike/',
+        views.DislikeCommentView.as_view(),
+        name='dislike_comment'
+    ),
+    path(
         'create/<int:video_id>/',
         views.CreateVideoCommentView.as_view(),
         name='create_video_comment'

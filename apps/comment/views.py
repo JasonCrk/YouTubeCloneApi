@@ -113,6 +113,51 @@ class LikeCommentView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class DislikeCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            comment_id = int(request.data['comment_id'])
+        except ValueError:
+            return Response({
+                'message': 'The comment ID must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({
+                'message': 'The comment does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        dislike_comment = LikedComment.objects.filter(
+            channel=request.user.current_channel,
+            comment=comment
+        ).first()
+
+        if dislike_comment != None:
+            if dislike_comment.liked == False:
+                dislike_comment.delete()
+
+                return Response({
+                    'message': 'Dislike comment removed'
+                }, status=status.HTTP_200_OK)
+
+            dislike_comment.liked = False
+            dislike_comment.save()
+        else:
+            LikedComment.objects.create(
+                channel=request.user.current_channel,
+                comment=comment,
+                liked=False
+            ).save()
+
+        return Response({
+            'message': 'Dislike comment added'
+        }, status=status.HTTP_200_OK)
+
+
 class EditCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
