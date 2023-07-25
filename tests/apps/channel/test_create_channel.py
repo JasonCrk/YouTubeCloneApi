@@ -28,7 +28,7 @@ class TestCreateChannel(TestSetup):
         )
 
         self.assertDictEqual(response.data, {'message': 'The channel has been created'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_to_check_if_the_channel_has_been_created_correctly(self):
         self.client.post(
