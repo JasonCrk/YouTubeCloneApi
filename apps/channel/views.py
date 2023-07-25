@@ -1,5 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import Error as DBError
 from django.http import HttpResponse
 
 from rest_framework.views import APIView
@@ -56,7 +54,7 @@ class SwitchChannelView(APIView):
 
         try:
             channel_to_change = Channel.objects.get(id=channel_id)
-        except ObjectDoesNotExist:
+        except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -106,7 +104,7 @@ class SubscribeChannelView(APIView):
             return Response({
                 'message': 'Subscription removed'
             }, status=status.HTTP_200_OK)
-        except ObjectDoesNotExist:
+        except ChannelSubscription.DoesNotExist:
             channel.subscriptions.add(request.user.current_channel)
 
             return Response({
@@ -173,7 +171,7 @@ class DeleteChannelView(APIView):
 
         try:
             channel = Channel.objects.get(id=channel_id)
-        except ObjectDoesNotExist:
+        except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
@@ -188,12 +186,7 @@ class DeleteChannelView(APIView):
                 'message': 'Cannot delete a channel that is currently in use'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            channel.delete()
-        except DBError:
-            return Response({
-                'message': 'The channel could not be deleted, please try again later'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        channel.delete()
 
         return Response({
             'message': 'The channel has been deleted'
