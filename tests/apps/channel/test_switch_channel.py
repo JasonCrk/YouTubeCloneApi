@@ -61,16 +61,20 @@ class TestSwitchChannel(TestSetup):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_to_return_error_response_if_the_channel_does_not_exist(self):
+        non_exists_channel_id = self.second_channel.pk
+
+        self.second_channel.delete()
+
         response = self.client.post(
             self.url,
             {
-                'channel_id': 100
+                'channel_id': non_exists_channel_id
             },
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'The channel does not exist'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertDictEqual(response.data, {'message': 'The channel does not exists'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_to_return_error_response_if_the_user_wants_to_switch_channel_that_they_dont_own(self):
         test_user: UserAccount = UserFactory.create()
