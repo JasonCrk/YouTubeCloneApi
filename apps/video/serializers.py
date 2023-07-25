@@ -19,9 +19,9 @@ class VideoSerializer(serializers.ModelSerializer):
         )
 
 
-class ValidationVideoSerializer(serializers.ModelSerializer):
+class CreateVideoSerializer(serializers.ModelSerializer):
     video = serializers.FileField()
-    thumbnail = serializers.FileField()
+    thumbnail = serializers.ImageField()
 
     class Meta:
         model = Video
@@ -29,7 +29,17 @@ class ValidationVideoSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'video',
-            'thumbnail'
+            'thumbnail',
+            'channel'
+        )
+
+    def create(self, validated_data):
+        return Video.objects.create(
+            title=validated_data['title'],
+            description=validated_data.get('description'),
+            video_url=validated_data.get('video_url'),
+            thumbnail=validated_data.get('thumbnail'),
+            channel=validated_data['channel']
         )
 
 

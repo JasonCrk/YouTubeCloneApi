@@ -42,7 +42,7 @@ class TestCreateVideo(TestSetup):
         )
 
         self.assertDictEqual(response.data, {'message': 'The video has been uploaded successfully'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_to_check_if_the_video_has_been_created_correctly(self):
         self.client.post(

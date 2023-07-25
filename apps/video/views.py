@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo
 
-from apps.video.serializers import ValidationVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
+from apps.video.serializers import CreateVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
@@ -20,38 +20,38 @@ class CreateVideoView(APIView):
     def post(self, request, format=None):
         video_data = request.data.dict()
 
-        video_data_validation = ValidationVideoSerializer(data=video_data)
+        new_video = CreateVideoSerializer(data={
+            'video': video_data.get('video'),
+            'thumbnail': video_data.get('thumbnail'),
+            'title': video_data.get('title'),
+            'description': video_data.get('description'),
+            'channel': request.user.current_channel.pk
+        })
 
-        if not video_data_validation.is_valid():
+        if not new_video.is_valid():
             return Response({
-                'errors': video_data_validation.errors
+                'errors': new_video.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            uploaded_thumbnail_url = upload_image(video_data.get('thumbnail'), 'thumbnails')
+            new_video.validated_data['thumbnail'] = upload_image(video_data.get('thumbnail'), 'thumbnails')
         except:
             return Response({
                 'message': 'Failed to upload video thumbnail, please try again later'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            uploaded_video_url = upload_video(video_data.get('video'))
+            new_video.validated_data['video_url'] = upload_video(video_data.get('video'))
         except:
             return Response({
                 'message': 'Failed to upload video, please try again later'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        Video.objects.create(
-            video_url=uploaded_video_url,
-            thumbnail=uploaded_thumbnail_url,
-            title=video_data['title'],
-            description=video_data['description'],
-            channel=request.user.current_channel
-        ).save()
+        new_video.save()
 
         return Response({
             'message': 'The video has been uploaded successfully'
-        }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_201_CREATED)
 
 
 class LikeAndDislikeVideoView(APIView):
