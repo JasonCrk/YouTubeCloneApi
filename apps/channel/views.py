@@ -10,7 +10,7 @@ from rest_framework import status
 
 from apps.channel.models import Channel, ChannelSubscription
 
-from apps.channel.serializers import CreateChannelValidationSerializer, UpdateChannelValidationSerializer
+from apps.channel.serializers import CreateChannelSerializer, UpdateChannelValidationSerializer
 
 from youtube_clone.utils.storage import upload_image
 
@@ -21,14 +21,14 @@ class CreateChannelView(APIView):
     def post(self, request, format=None):
         channel_data = request.data
 
-        channel_created = CreateChannelValidationSerializer(data={
+        new_channel = CreateChannelSerializer(data={
             'name': channel_data['name'],
             'user': request.user.pk
         })
 
-        if not channel_created.is_valid():
+        if not new_channel.is_valid():
             return Response({
-                'errors': channel_created.errors
+                'errors': new_channel.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if Channel.objects.filter(user=request.user).count() >= 10:
@@ -36,7 +36,7 @@ class CreateChannelView(APIView):
                 'message': "You can't have more than 10 channels"
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        channel_created.save()
+        new_channel.save()
 
         return Response({
             'message': 'The channel has been created'

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.channel.models import Channel
 
 
-class CreateChannelValidationSerializer(serializers.ModelSerializer):
+class CreateChannelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Channel
         fields = (
