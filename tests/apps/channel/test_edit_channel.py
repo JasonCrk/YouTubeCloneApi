@@ -18,7 +18,7 @@ class TestEditChannel(TestSetup):
 
         self.url = reverse('edit_channel')
 
-    def test_to_return_success_response_if_channel_edit_successfully(self):
+    def test_to_return_success_response_if_channel_editing_has_been_successfully(self):
         response = self.client.patch(
             self.url,
             {
@@ -34,17 +34,17 @@ class TestEditChannel(TestSetup):
         self.assertDictEqual(response.data, {'message': 'The channel has been successfully updated'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_to_return_an_error_response_if_the_user_does_not_update_any_attributes(self):
+    def test_to_return_error_response_if_the_user_does_not_send_any_data(self):
         response = self.client.patch(
             self.url,
             data={},
             format='multipart'
         )
 
-        self.assertDictEqual(response.data, {'message': 'You need to update at least one attribute'})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertDictEqual(response.data, {'message': 'The data is required'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_to_check_that_the_channel_banner_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_banner_has_been_edited_correctly(self):
         banner_content = faker.image(size=(16, 16), hue=[90, 270])
 
         banner_image = SimpleUploadedFile('banner_default.png', banner_content, content_type='image/png')
@@ -61,7 +61,7 @@ class TestEditChannel(TestSetup):
 
         self.assertNotEqual(self.user.current_channel.banner_url, channel_edited.banner_url)
 
-    def test_to_check_that_the_channel_picture_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_picture_has_been_edited_correctly(self):
         picture_content = faker.image(size=(16, 16), hue=[90, 270])
 
         picture_image = SimpleUploadedFile('avatar_default.png', picture_content, content_type='image/png')
@@ -78,7 +78,7 @@ class TestEditChannel(TestSetup):
 
         self.assertNotEqual(self.user.current_channel.picture_url, channel_edited.picture_url)
 
-    def test_to_check_that_the_channel_description_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_description_has_been_edited_correctly(self):
         new_channel_description = faker.paragraph()
 
         self.client.patch(
@@ -93,7 +93,7 @@ class TestEditChannel(TestSetup):
 
         self.assertEqual(new_channel_description, channel_edited.description)
 
-    def test_to_check_that_the_channel_handle_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_handle_has_been_edited_correctly(self):
         new_channel_handle = faker.pystr(max_chars=28)
 
         self.client.patch(
@@ -108,7 +108,7 @@ class TestEditChannel(TestSetup):
 
         self.assertEqual(new_channel_handle, channel_edited.handle)
 
-    def test_to_check_that_the_channel_name_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_name_has_been_edited_correctly(self):
         new_channel_name = faker.user_name()
 
         self.client.patch(
@@ -123,7 +123,7 @@ class TestEditChannel(TestSetup):
 
         self.assertEqual(new_channel_name, channel_edited.name)
 
-    def test_to_check_that_the_channel_contact_email_has_been_edited_correctly(self):
+    def test_to_check_if_the_channel_contact_email_has_been_edited_correctly(self):
         new_channel_contact_email = faker.email()
 
         self.client.patch(
@@ -147,7 +147,7 @@ class TestEditChannel(TestSetup):
             format='multipart'
         )
 
-        self.assertNotEqual(response.data.get('errors').get('name'), None)
+        self.assertIsNotNone(response.data.get('errors').get('name'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_to_return_error_response_if_the_new_channel_banner_is_not_a_image(self):
@@ -163,7 +163,7 @@ class TestEditChannel(TestSetup):
             format='multipart'
         )
 
-        self.assertNotEqual(response.data.get('errors').get('banner'), None)
+        self.assertIsNotNone(response.data.get('errors').get('banner'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_to_return_error_response_if_the_new_channel_picture_is_not_a_image(self):
@@ -179,5 +179,5 @@ class TestEditChannel(TestSetup):
             format='multipart'
         )
 
-        self.assertNotEqual(response.data.get('errors').get('picture'), None)
+        self.assertIsNotNone(response.data.get('errors').get('picture'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
