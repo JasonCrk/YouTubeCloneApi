@@ -1,5 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -69,7 +67,7 @@ class LikeAndDislikeVideoView(APIView):
 
         try:
             video = Video.objects.get(id=video_like_data['video_id'])
-        except ObjectDoesNotExist:
+        except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exists'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -130,7 +128,7 @@ class EditVideoView(APIView):
 
         try:
             video = Video.objects.get(id=video_id)
-        except ObjectDoesNotExist:
+        except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exists'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -169,7 +167,7 @@ class DeleteVideoView(APIView):
     def delete(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
-        except ObjectDoesNotExist:
+        except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exists'
             }, status=status.HTTP_404_NOT_FOUND)
