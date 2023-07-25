@@ -13,15 +13,15 @@ from faker import Faker
 faker = Faker()
 
 
-class TestSubscribeAndUnsubscribeChannel(TestSetup):
+class TestSubscribeChannel(TestSetup):
     def setUp(self):
         super().setUp()
 
-        self.url = reverse('subscribe_unsubscribe_channel')
+        self.url = reverse('subscribe_channel')
 
         self.test_channel: Channel = ChannelFactory.create(user=self.user)
 
-    def test_successful_subscription_message(self):
+    def test_to_return_success_response_if_the_subscription_channel_has_been_successful(self):
         response = self.client.post(
             self.url,
             {
@@ -33,7 +33,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         self.assertDictEqual(response.data, {'message': 'Subscription added'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_the_user_has_subscribed_successfully(self):
+    def test_to_check_if_the_subscription_channel_has_been_successful(self):
         self.client.post(
             self.url,
             {
@@ -49,7 +49,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
 
         self.assertTrue(subscription_exists)
 
-    def test_unsubscribe_message_successfully(self):
+    def test_to_return_success_response_if_the_subscription_has_been_removed(self):
         self.test_channel.subscriptions.add(self.user.current_channel)
 
         response = self.client.post(
@@ -63,7 +63,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         self.assertDictEqual(response.data, {'message': 'Subscription removed'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_the_user_unsubscribed_from_the_channel_successfully(self):
+    def test_to_check_if_the_subscription_has_been_removed(self):
         self.test_channel.subscriptions.add(self.user.current_channel)
 
         self.client.post(
@@ -81,7 +81,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
 
         self.assertFalse(subscription_exists)
 
-    def test_channel_id_is_not_number(self):
+    def test_to_return_error_response_if_the_channel_id_is_not_a_number(self):
         response = self.client.post(
             self.url,
             {
@@ -91,13 +91,17 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         )
 
         self.assertDictEqual(response.data, {'message': 'The channel ID must be a number'})
-        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_channel_is_does_not_exist(self):
+    def test_to_return_error_response_if_the_channel_does_not_exists(self):
+        not_exists_channel_id = self.test_channel.pk
+
+        self.test_channel.delete()
+
         response = self.client.post(
             self.url,
             {
-                'channel_id': 1000
+                'channel_id': not_exists_channel_id
             },
             format='json'
         )
@@ -105,7 +109,7 @@ class TestSubscribeAndUnsubscribeChannel(TestSetup):
         self.assertDictEqual(response.data, {'message': 'The channel does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_user_cannot_subscribe_to_itself(self):
+    def test_to_return_error_response_if_the_user_wants_to_subscribe_a_itself_channel(self):
         response = self.client.post(
             self.url,
             {

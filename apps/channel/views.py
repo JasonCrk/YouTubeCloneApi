@@ -72,7 +72,7 @@ class SwitchChannelView(APIView):
         return HttpResponse(status=status.HTTP_200_OK)
 
 
-class SubscribeAndUnsubscribeChannelView(APIView):
+class SubscribeChannelView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
@@ -81,11 +81,11 @@ class SubscribeAndUnsubscribeChannelView(APIView):
         except:
             return Response({
                 'message': 'The channel ID must be a number'
-            }, status=status.HTTP_406_NOT_ACCEPTABLE)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             channel = Channel.objects.get(id=channel_id)
-        except ObjectDoesNotExist:
+        except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
