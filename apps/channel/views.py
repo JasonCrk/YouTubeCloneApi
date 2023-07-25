@@ -8,7 +8,7 @@ from rest_framework import status
 
 from apps.channel.models import Channel, ChannelSubscription
 
-from apps.channel.serializers import CreateChannelSerializer, UpdateChannelValidationSerializer
+from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer
 
 from youtube_clone.utils.storage import upload_image
 
@@ -38,7 +38,7 @@ class CreateChannelView(APIView):
 
         return Response({
             'message': 'The channel has been created'
-        }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_201_CREATED)
 
 
 class SwitchChannelView(APIView):
@@ -121,10 +121,10 @@ class EditChannelView(APIView):
 
         if len(channel_data.keys()) == 0:
             return Response({
-                'message': 'You need to update at least one attribute'
-            }, status=status.HTTP_404_NOT_FOUND)
+                'message': 'The data is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        updated_channel = UpdateChannelValidationSerializer(
+        updated_channel = UpdateChannelSerializer(
             request.user.current_channel,
             data=channel_data,
             partial=True

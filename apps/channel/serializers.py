@@ -12,7 +12,7 @@ class CreateChannelSerializer(serializers.ModelSerializer):
         )
 
 
-class UpdateChannelValidationSerializer(serializers.ModelSerializer):
+class UpdateChannelSerializer(serializers.ModelSerializer):
     banner = serializers.ImageField(required=False)
     picture = serializers.ImageField(required=False)
     name = serializers.CharField(max_length=25, required=False)
