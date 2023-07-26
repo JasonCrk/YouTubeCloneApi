@@ -6,7 +6,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo
 
-from apps.video.serializers import CreateVideoSerializer, VideoLikeValidatorSerializer, UpdateVideoValidatorSerializer
+from apps.video.serializers import CreateVideoSerializer, UpdateVideoValidatorSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
@@ -52,65 +52,93 @@ class CreateVideoView(APIView):
         }, status=status.HTTP_201_CREATED)
 
 
-class LikeAndDislikeVideoView(APIView):
+class LikeVideoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
-        video_like_data = request.data
-
-        video_like_data_validation = VideoLikeValidatorSerializer(data=video_like_data)
-
-        if not video_like_data_validation.is_valid():
+        try:
+            video_id = int(request.data['video_id'])
+        except ValueError:
             return Response({
-                'errors': video_like_data_validation.errors
+                'message': 'The video ID must be a number'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            video = Video.objects.get(id=video_like_data['video_id'])
+            video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exists'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_404_NOT_FOUND)
 
-        find_video_like = LikedVideo.objects.filter(
-            channel=request.user.current_channel,
-            video=video
-        )
+        try:
+            like_video = LikedVideo.objects.get(
+                channel=request.user.current_channel,
+                video=video
+            )
 
-        like_type = 'like' if video_like_data['liked'] else 'dislike'
+            if like_video.liked:
+                like_video.delete()
 
-        if not find_video_like.exists():
-            like = LikedVideo.objects.create(
+                return Response({
+                    'message': 'Like video removed'
+                }, status=status.HTTP_200_OK)
+
+            like_video.liked = True
+            like_video.save()
+        except LikedVideo.DoesNotExist:
+            LikedVideo.objects.create(
                 channel=request.user.current_channel,
                 video=video,
-                liked=video_like_data['liked']
-            )
-            like.save()
-
-            message = f'{like_type.capitalize()} video'
-
-            return Response({
-                'message': message
-            }, status=status.HTTP_200_OK)
-
-        video_like: LikedVideo = find_video_like.first()
-
-        if video_like.liked != video_like_data['liked']:
-            video_like.liked = video_like_data['liked']
-            video_like.save()
-
-            message = f'{like_type.capitalize()} video'
-
-            return Response({
-                'message': message
-            }, status=status.HTTP_200_OK)
-
-        video_like.delete()
-
-        message = f'The {like_type} has been removed'
+                liked=True
+            ).save()
 
         return Response({
-            'message': message
+            'message': 'Like video added'
+        }, status=status.HTTP_200_OK)
+
+
+class DislikeVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            video_id = int(request.data['video_id'])
+        except ValueError:
+            return Response({
+                'message': 'The video ID must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            video = Video.objects.get(id=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            dislike_video = LikedVideo.objects.get(
+                channel=request.user.current_channel,
+                video=video
+            )
+
+            if not dislike_video.liked:
+                dislike_video.delete()
+
+                return Response({
+                    'message': 'Dislike video removed'
+                }, status=status.HTTP_200_OK)
+
+            dislike_video.liked = False
+            dislike_video.save()
+        except LikedVideo.DoesNotExist:
+            LikedVideo.objects.create(
+                channel=request.user.current_channel,
+                video=video,
+                liked=False
+            ).save()
+
+        return Response({
+            'message': 'Dislike video added'
         }, status=status.HTTP_200_OK)
 
 

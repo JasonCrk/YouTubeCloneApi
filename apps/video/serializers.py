@@ -54,14 +54,3 @@ class UpdateVideoValidatorSerializer(serializers.ModelSerializer):
             'description',
             'thumbnail'
         )
-
-
-class VideoLikeValidatorSerializer(serializers.ModelSerializer):
-    video_id = serializers.IntegerField()
-
-    class Meta:
-        model = LikedVideo
-        fields = (
-            'liked',
-            'video_id'
-        )
