@@ -3,6 +3,7 @@ from django.urls import path
 from apps.video import views
 
 urlpatterns = [
+    path('search/', views.SearchVideosView.as_view(), name='search_videos'),
     path('create/', views.CreateVideoView.as_view(), name='upload_video'),
     path('like/', views.LikeVideoView.as_view(), name='like_video'),
     path('dislike/', views.DislikeVideoView.as_view(), name='dislike_video'),

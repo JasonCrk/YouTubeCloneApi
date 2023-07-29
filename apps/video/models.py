@@ -21,7 +21,11 @@ class Video(models.Model):
 
 
 class VideoView(models.Model):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    channel = models.ForeignKey(
+        Channel,
+        on_delete=models.CASCADE,
+        related_query_name='views'
+    )
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     count = models.PositiveBigIntegerField(default=1)
     last_view_date = models.DateTimeField(auto_now=True, blank=True)

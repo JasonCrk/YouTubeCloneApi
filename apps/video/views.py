@@ -1,14 +1,63 @@
+import datetime
+
+from django.db.models import Q, Count, Sum, Subquery, OuterRef
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 
-from apps.video.models import Video, LikedVideo
+from apps.video.models import Video, LikedVideo, VideoView
 
-from apps.video.serializers import CreateVideoSerializer, UpdateVideoValidatorSerializer
+from apps.video.serializers import CreateVideoSerializer, UpdateVideoSerializer, VideoSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
+
+from youtube_clone.enums import SortByEnum, UploadDateEnum
+
+
+class SearchVideosView(APIView):
+    def get(self, request, format=None):
+        search_query = request.query_params.get('search_query')
+        sort_by = request.query_params.get('sort_by')
+        upload_date = request.query_params.get('upload_date')
+
+        if not search_query:
+            return Response({
+                'message': 'Search query is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        filtered_videos = Video.objects.filter(Q(title=search_query) | Q(title__icontains=search_query))
+
+        if upload_date == UploadDateEnum.LAST_HOUR:
+            filtered_videos = filtered_videos.filter(timestamp__hour=datetime.datetime.today().hour)
+        elif upload_date == UploadDateEnum.TODAY:
+            filtered_videos = filtered_videos.filter(publication_date__date=datetime.date.today())
+        elif upload_date == UploadDateEnum.THIS_WEEK:
+            filtered_videos = filtered_videos.filter(publication_date__week=datetime.date.today().isocalendar().week)
+        elif upload_date == UploadDateEnum.THIS_MONTH:
+            filtered_videos = filtered_videos.filter(publication_date__month=datetime.datetime.today().month)
+        elif upload_date == UploadDateEnum.THIS_YEAR:
+            filtered_videos = filtered_videos.filter(publication_date__year=datetime.datetime.today().year)
+
+        if sort_by == SortByEnum.UPLOAD_DATE.value:
+            filtered_videos = filtered_videos.order_by('publication_date')
+        elif sort_by == SortByEnum.VIEW_COUNT.value:
+            total_video_views = Subquery(VideoView.objects.filter(video__pk=OuterRef('pk')).values_list('count'))
+            filtered_videos = filtered_videos.annotate(
+                total_views=Sum(total_video_views)
+            ).order_by('total_views')
+        elif sort_by == SortByEnum.RATING.value:
+            filtered_videos = filtered_videos.annotate(
+                num_likes=Count('likes')
+            ).order_by('-num_likes')
+
+        serialized_videos = VideoSerializer(filtered_videos, many=True)
+
+        return Response({
+            'data': serialized_videos.data
+        }, status=status.HTTP_200_OK)
 
 
 class CreateVideoView(APIView):
@@ -166,7 +215,7 @@ class EditVideoView(APIView):
                 'message': 'You are not a owner of this video'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        updated_video = UpdateVideoValidatorSerializer(video, data=data, partial=True)
+        updated_video = UpdateVideoSerializer(video, data=data, partial=True)
 
         if not updated_video.is_valid():
             return Response({
