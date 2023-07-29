@@ -1,6 +1,40 @@
 from rest_framework import serializers
 
-from apps.channel.models import Channel
+from apps.channel.models import Channel, ChannelSubscription
+
+
+class ChannelSerializer(serializers.ModelSerializer):
+    subscribers = serializers.SerializerMethodField('subscribers_count')
+
+    def subscribers_count(self, instance: Channel):
+        return ChannelSubscription.objects.filter(subscribing=instance).count()
+
+    class Meta:
+        model = Channel
+        fields = (
+            'id',
+            'name',
+            'handle',
+            'picture_url',
+            'subscribers'
+        )
+
+    def to_representation(self, instance: Channel):
+        representation = super().to_representation(instance)
+
+        representation['handle'] = '@'+instance.handle
+
+        return representation
+
+
+class ChannelSimpleRepresentationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Channel
+        fields = (
+            'id',
+            'picture_url',
+            'name'
+        )
 
 
 class CreateChannelSerializer(serializers.ModelSerializer):

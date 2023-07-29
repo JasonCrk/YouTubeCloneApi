@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import factory
 
 from apps.video.models import Video
@@ -14,3 +16,4 @@ class VideoFactory(factory.django.DjangoModelFactory):
     thumbnail = factory.Faker('image_url')
     description = factory.Faker('paragraph')
     channel = factory.SubFactory(ChannelFactory)
+    publication_date = datetime.today()
