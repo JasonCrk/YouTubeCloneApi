@@ -1,3 +1,4 @@
+from django.db.models import Q, Subquery, OuterRef, Sum, Count
 from django.http import HttpResponse
 
 from rest_framework.views import APIView
@@ -7,10 +8,46 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework import status
 
 from apps.channel.models import Channel, ChannelSubscription
+from apps.video.models import VideoView
 
-from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer
+from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer, ChannelSerializer
 
 from youtube_clone.utils.storage import upload_image
+from youtube_clone.enums import SortByEnum
+
+
+class SearchChannelsView(APIView):
+    def get(self, request, format=None):
+        search_query = request.query_params.get('search_query')
+        sort_by = request.query_params.get('sort_by')
+
+        if not search_query:
+            return Response({
+                'message': 'Search query is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        filtered_channels = Channel.objects.filter(
+            Q(name=search_query) | Q(name__icontains=search_query)
+        )
+
+        if sort_by == SortByEnum.UPLOAD_DATE.value:
+            filtered_channels = filtered_channels.order_by('joined')
+        elif sort_by == SortByEnum.VIEW_COUNT.value:
+            total_video_views = Subquery(VideoView.objects.filter(video__channel__pk=OuterRef('pk')).values_list('count'))
+            filtered_channels = filtered_channels.annotate(
+                total_views=Sum(total_video_views)
+            ).order_by('total_views')
+        elif sort_by == SortByEnum.RATING.value:
+            total_channel_subscribers = Subquery(ChannelSubscription.objects.filter(subscribing__pk=OuterRef('pk')).values_list('pk'))
+            filtered_channels = filtered_channels.annotate(
+                total_subscribers=Count(total_channel_subscribers)
+            ).order_by('-total_subscribers')
+
+        serialized_channels = ChannelSerializer(filtered_channels, many=True)
+
+        return Response({
+            'data': serialized_channels.data
+        }, status=status.HTTP_200_OK)
 
 
 class CreateChannelView(APIView):
