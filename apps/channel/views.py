@@ -10,10 +10,27 @@ from rest_framework import status
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import VideoView
 
-from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer, ChannelSerializer
+from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer, ChannelSerializer, ChannelSimpleRepresentationSerializer
 
 from youtube_clone.utils.storage import upload_image
 from youtube_clone.enums import SortByEnum
+
+
+class GetSubscribedChannelsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        ids_channels_subscribed = ChannelSubscription.objects.filter(
+            subscriber=request.user.current_channel
+        ).values_list('subscribing__id', flat=True).order_by('subscription_date')
+
+        channels_subscribed = Channel.objects.filter(id__in=ids_channels_subscribed)
+
+        serialized_channels_subscribed = ChannelSimpleRepresentationSerializer(channels_subscribed, many=True)
+
+        return Response({
+            'data': serialized_channels_subscribed.data
+        }, status=status.HTTP_200_OK)
 
 
 class SearchChannelsView(APIView):
