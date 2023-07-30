@@ -19,6 +19,11 @@ urlpatterns = [
         name='video_comments'
     ),
     path(
+        'comment/<int:comment_id>',
+        views.GetCommentsOfCommentView.as_view(),
+        name='comments_of_comment'
+    ),
+    path(
         'create/<int:video_id>/',
         views.CreateVideoCommentView.as_view(),
         name='create_video_comment'

@@ -27,6 +27,24 @@ class GetVideoCommentsView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class GetCommentsOfCommentView(APIView):
+    def get(self, request, comment_id, format=None):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({
+                'message': 'The comment does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        comments_of_comment = Comment.objects.filter(comment=comment)
+
+        serialized_comments_of_comment = ListCommentSerializer(comments_of_comment, many=True)
+
+        return Response({
+            'data': serialized_comments_of_comment.data
+        }, status=status.HTTP_200_OK)
+
+
 class CreateVideoCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
