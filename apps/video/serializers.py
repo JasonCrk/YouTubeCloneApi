@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
-from apps.video.models import Video, VideoView
+from apps.video.models import Video, VideoView, LikedVideo
+from apps.comment.models import Comment
 
-from apps.channel.serializers import ChannelSimpleRepresentationSerializer
+from apps.channel.serializers import ChannelSimpleRepresentationSerializer, ChannelSerializer
 
 
-class VideoSerializer(serializers.ModelSerializer):
+class VideoListSerializer(serializers.ModelSerializer):
     channel = ChannelSimpleRepresentationSerializer(read_only=True)
 
     class Meta:
@@ -13,7 +14,6 @@ class VideoSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'title',
-            'video_url',
             'thumbnail',
             'description',
             'channel',
@@ -25,12 +25,49 @@ class VideoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Video):
         representation = super().to_representation(instance)
 
-        video_view_list_not_transformed = VideoView.objects.filter(video=instance).values_list('count')
-        video_view_list_transformed = map(lambda view: view[0], video_view_list_not_transformed)
-        total_video_views = sum(video_view_list_transformed)
+        video_view_list = VideoView.objects.filter(video=instance).values_list('count', flat=True)
+        total_video_views = sum(video_view_list)
 
         representation['views'] = total_video_views
-        representation['likes'] = instance.likes.count()
+        representation['likes'] = LikedVideo.objects.filter(video=instance, liked=True).count()
+
+        return representation
+
+
+class VideoDetailsSerializer(serializers.ModelSerializer):
+    channel = ChannelSerializer(read_only=True)
+    dislikes = serializers.SerializerMethodField('video_dislikes')
+    comment_count = serializers.SerializerMethodField('video_comments')
+
+    def video_dislikes(self, instance: Video):
+        return LikedVideo.objects.filter(video=instance, liked=False).count()
+
+    def video_comments(self, instance: Video):
+        return Comment.objects.filter(video=instance).count()
+
+    class Meta:
+        model = Video
+        fields = (
+            'id',
+            'title',
+            'video_url',
+            'description',
+            'channel',
+            'publication_date',
+            'views',
+            'likes',
+            'dislikes',
+            'comment_count'
+        )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        video_view_list = VideoView.objects.filter(video=instance).values_list('count', flat=True)
+        total_video_views = sum(video_view_list)
+
+        representation['views'] = total_video_views
+        representation['likes'] = LikedVideo.objects.filter(video=instance, liked=True).count()
 
         return representation
 

@@ -2,7 +2,7 @@ import datetime
 
 from django.db.models import Q, Count, Sum, Subquery, OuterRef
 
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -10,11 +10,16 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo, VideoView
 
-from apps.video.serializers import CreateVideoSerializer, UpdateVideoSerializer, VideoSerializer
+from apps.video.serializers import CreateVideoSerializer, UpdateVideoSerializer, VideoListSerializer, VideoDetailsSerializer
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
 from youtube_clone.enums import SortByEnum, UploadDateEnum
+
+
+class GetVideoDetails(generics.RetrieveAPIView):
+    queryset = Video.objects.all()
+    serializer_class = VideoDetailsSerializer
 
 
 class SearchVideosView(APIView):
@@ -53,7 +58,7 @@ class SearchVideosView(APIView):
                 num_likes=Count('likes')
             ).order_by('-num_likes')
 
-        serialized_videos = VideoSerializer(filtered_videos, many=True)
+        serialized_videos = VideoListSerializer(filtered_videos, many=True)
 
         return Response({
             'data': serialized_videos.data
