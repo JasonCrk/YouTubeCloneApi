@@ -6,7 +6,25 @@ from rest_framework.permissions import IsAuthenticated
 from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
 
-from apps.comment.serializers import CreateCommentSerializer, UpdateCommentSerializer
+from apps.comment.serializers import ListCommentSerializer, CreateCommentSerializer, UpdateCommentSerializer
+
+
+class GetVideoCommentsView(APIView):
+    def get(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(id=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        video_comments = Comment.objects.filter(video=video, comment__isnull=True)
+
+        serialized_video_comments = ListCommentSerializer(video_comments, many=True)
+
+        return Response({
+            'data': serialized_video_comments.data
+        }, status=status.HTTP_200_OK)
 
 
 class CreateVideoCommentView(APIView):
