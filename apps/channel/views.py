@@ -21,6 +21,20 @@ class GetChannelDetailsByIdView(generics.RetrieveAPIView):
     serializer_class = ChannelDetailsSerializer
 
 
+class GetChannelDetailsByHandleView(APIView):
+    def get(self, request, channel_handle, format=None):
+        try:
+            channel = Channel.objects.get(handle=channel_handle)
+        except Channel.DoesNotExist:
+            return Response({
+                'message': 'The channel does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serialized_channel = ChannelDetailsSerializer(channel)
+
+        return Response(serialized_channel.data, status=status.HTTP_200_OK)
+
+
 class GetSubscribedChannelsView(APIView):
     permission_classes = [IsAuthenticated]
 

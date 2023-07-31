@@ -10,5 +10,6 @@ urlpatterns = [
     path('subscribe/', views.SubscribeChannelView.as_view(), name='subscribe_channel'),
     path('edit/', views.EditChannelView.as_view(), name='edit_channel'),
     path('by-id/<pk>', views.GetChannelDetailsByIdView.as_view(), name='channel_details_by_id'),
+    path('by-handle/<str:channel_handle>', views.GetChannelDetailsByHandleView.as_view(), name='channel_details_by_handle'),
     path('<int:channel_id>/delete/', views.DeleteChannelView.as_view(), name='delete_channel')
 ]
