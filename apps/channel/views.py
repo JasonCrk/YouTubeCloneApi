@@ -1,11 +1,11 @@
 from django.db.models import Q, Subquery, OuterRef, Sum, Count
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
+from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework import status, generics
 
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import VideoView
@@ -19,6 +19,14 @@ from youtube_clone.enums import SortByEnum
 class GetChannelDetailsByIdView(generics.RetrieveAPIView):
     queryset = Channel.objects.all()
     serializer_class = ChannelDetailsSerializer
+
+    def handle_exception(self, exc):
+        if isinstance(exc, Http404):
+            return Response({
+                'message': 'The channel does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        return super().handle_exception(exc)
 
 
 class GetChannelDetailsByHandleView(APIView):

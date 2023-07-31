@@ -28,5 +28,5 @@ class TestChannelDetailsById(APITestCase):
 
         response = self.client.get(self.url)
 
-        self.assertIsNotNone(response.data.get('detail'))
+        self.assertDictEqual(response.data, {'message': 'The channel does not exists'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
