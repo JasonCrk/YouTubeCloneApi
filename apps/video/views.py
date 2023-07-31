@@ -1,6 +1,7 @@
 import datetime
 
 from django.db.models import Q, Count, Sum, Subquery, OuterRef
+from django.http import Http404
 
 from rest_framework import status, generics
 from rest_framework.views import APIView
@@ -17,9 +18,17 @@ from youtube_clone.utils.storage import upload_video, upload_image
 from youtube_clone.enums import SortByEnum, UploadDateEnum
 
 
-class GetVideoDetails(generics.RetrieveAPIView):
+class GetVideoDetailsView(generics.RetrieveAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoDetailsSerializer
+
+    def handle_exception(self, exc):
+        if isinstance(exc, Http404):
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        return super().handle_exception(exc)
 
 
 class SearchVideosView(APIView):

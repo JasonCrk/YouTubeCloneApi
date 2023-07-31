@@ -17,21 +17,20 @@ faker = Faker()
 class TestVideoDetails(APITestCase):
     def setUp(self):
         self.test_video: Video = VideoFactory.create()
-
-        self.test_video_serialized = VideoDetailsSerializer(self.test_video).data
-
         self.url = reverse('video_details', kwargs={'pk': self.test_video.pk})
 
     def test_to_return_video_details_successful(self):
         response = self.client.get(self.url)
 
-        self.assertDictEqual(response.data, self.test_video_serialized)
+        serialized_test_video = VideoDetailsSerializer(self.test_video)
+
+        self.assertDictEqual(response.data, serialized_test_video.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_to_return_error_response_if_the_video_does_not_exists(self):
+    def test_to_return_error_response_and_status_code_404_if_the_video_does_not_exists(self):
         self.test_video.delete()
 
         response = self.client.get(self.url)
 
-        self.assertIsNotNone(response.data.get('detail'))
+        self.assertDictEqual(response.data, {'message': 'The video does not exists'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
