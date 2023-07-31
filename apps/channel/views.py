@@ -5,15 +5,20 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework import status
+from rest_framework import status, generics
 
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import VideoView
 
-from apps.channel.serializers import CreateChannelSerializer, UpdateChannelSerializer, ChannelSerializer, ChannelSimpleRepresentationSerializer
+from apps.channel.serializers import ChannelDetailsSerializer, CreateChannelSerializer, UpdateChannelSerializer, ChannelListSerializer, ChannelSimpleRepresentationSerializer
 
 from youtube_clone.utils.storage import upload_image
 from youtube_clone.enums import SortByEnum
+
+
+class GetChannelDetailsByIdView(generics.RetrieveAPIView):
+    queryset = Channel.objects.all()
+    serializer_class = ChannelDetailsSerializer
 
 
 class GetSubscribedChannelsView(APIView):
@@ -60,7 +65,7 @@ class SearchChannelsView(APIView):
                 total_subscribers=Count(total_channel_subscribers)
             ).order_by('-total_subscribers')
 
-        serialized_channels = ChannelSerializer(filtered_channels, many=True)
+        serialized_channels = ChannelListSerializer(filtered_channels, many=True)
 
         return Response({
             'data': serialized_channels.data

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.video.models import Video, VideoView, LikedVideo
 from apps.comment.models import Comment
 
-from apps.channel.serializers import ChannelSimpleRepresentationSerializer, ChannelSerializer
+from apps.channel.serializers import ChannelSimpleRepresentationSerializer, ChannelListSerializer
 
 
 class VideoListSerializer(serializers.ModelSerializer):
@@ -35,7 +35,7 @@ class VideoListSerializer(serializers.ModelSerializer):
 
 
 class VideoDetailsSerializer(serializers.ModelSerializer):
-    channel = ChannelSerializer(read_only=True)
+    channel = ChannelListSerializer(read_only=True)
     dislikes = serializers.SerializerMethodField('video_dislikes')
     comment_count = serializers.SerializerMethodField('video_comments')
 
