@@ -7,6 +7,7 @@ urlpatterns = [
     path('api/channels/', include('apps.channel.urls')),
     path('api/videos/', include('apps.video.urls')),
     path('api/comments/', include('apps.comment.urls')),
+    path('api/links/', include('apps.link.urls')),
 
     path('admin/', admin.site.urls)
 ]
