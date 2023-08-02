@@ -1,3 +1,4 @@
+from typing import Dict, Tuple
 from django.db import models
 
 from apps.channel.models import Channel
@@ -34,3 +35,13 @@ class Link(models.Model):
 
     def __str__(self):
         return self.title
+
+    def delete(self) -> Tuple[int, Dict[str, int]]:
+        Link.objects.filter(
+            channel=self.channel,
+            position__gt=self.position
+        ).update(
+            position=models.F('position') - 1
+        )
+
+        return super(Link, self).delete()
