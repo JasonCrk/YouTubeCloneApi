@@ -11,3 +11,12 @@ class CreateLinkSerializer(serializers.ModelSerializer):
             'url',
             'channel'
         )
+
+
+class UpdateLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Link
+        fields = (
+            'title',
+            'url'
+        )
