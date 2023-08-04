@@ -1,3 +1,5 @@
+from django.db.models import F
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -28,6 +30,76 @@ class CreateLinkView(APIView):
         return Response({
             'message': 'The link has been created'
         }, status=status.HTTP_201_CREATED)
+
+
+class RepositionLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        try:
+            link_id = int(request.data.get('link_id'))
+        except (ValueError, TypeError):
+            return Response({
+                'message': 'The link ID must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_position = int(request.data.get('new_position'))
+        except (ValueError, TypeError):
+            return Response({
+                'message': 'The new position must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            link: Link = Link.objects.get(id=link_id)
+        except Link.DoesNotExist:
+            return Response({
+                'message': 'The link does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if link.channel != request.user.current_channel:
+            return Response({
+                'message': 'You do not own this link'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        if link.position == new_position:
+            return Response({
+                'message': 'The new position must not be the same as the link position'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        current_channel = request.user.current_channel
+
+        try:
+            link_to_update: Link = Link.objects.get(
+                channel=current_channel,
+                position=new_position
+            )
+        except Link.DoesNotExist:
+            return Response({
+                'message': 'The new position does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        channel_links_rearrange = Link.objects.filter(
+            channel=current_channel
+        ).exclude(id=link.pk).order_by('position')
+
+        if abs(link.position - new_position) == 1:
+            link_to_update.position = link.position
+
+            link_to_update.save()
+        elif link.position > new_position:
+            links_to_rearrange = channel_links_rearrange.filter(position__range=(new_position, link.position))
+            links_to_rearrange.update(position=F('position') + 1)
+        else:
+            links_to_rearrange = channel_links_rearrange.filter(position__range=(link.position, new_position))
+            links_to_rearrange.update(position=F('position') - 1)
+
+        link.position = new_position
+        link.save()
+
+        return Response({
+            'message': 'The link has been repositioned'
+        }, status=status.HTTP_200_OK)
 
 
 class EditLinkView(APIView):
