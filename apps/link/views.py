@@ -6,8 +6,27 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.link.models import Link
+from apps.channel.models import Channel
 
-from apps.link.serializers import CreateLinkSerializer, UpdateLinkSerializer
+from apps.link.serializers import LinkListSerializer, CreateLinkSerializer, UpdateLinkSerializer
+
+
+class GetChannelLinksView(APIView):
+    def get(self, request, channel_id, format=None):
+        try:
+            channel = Channel.objects.get(id=channel_id)
+        except Channel.DoesNotExist:
+            return Response({
+                'message': 'The channel does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        channel_links = Link.objects.filter(channel=channel).order_by('position')
+
+        serialized_channel_links = LinkListSerializer(channel_links, many=True)
+
+        return Response({
+            'data': serialized_channel_links.data
+        }, status=status.HTTP_200_OK)
 
 
 class CreateLinkView(APIView):
