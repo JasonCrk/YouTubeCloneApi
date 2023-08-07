@@ -2,7 +2,7 @@ import factory
 
 from apps.link.models import Link
 
-from tests.factories.channel_factory import ChannelFactory
+from tests.factories.channel import ChannelFactory
 
 
 class LinkFactory(factory.django.DjangoModelFactory):

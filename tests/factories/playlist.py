@@ -2,8 +2,8 @@ import factory
 
 from apps.playlist.models import Playlist, PlaylistVideo
 
-from tests.factories.channel_factory import ChannelFactory
-from tests.factories.video_factory import VideoFactory
+from tests.factories.channel import ChannelFactory
+from tests.factories.video import VideoFactory
 
 
 class PlaylistFactory(factory.django.DjangoModelFactory):

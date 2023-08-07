@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.channel_factory import ChannelFactory
+from tests.factories.channel import ChannelFactory
 
 from apps.channel.models import Channel
 

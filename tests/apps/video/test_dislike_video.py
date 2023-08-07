@@ -4,8 +4,7 @@ from rest_framework import status
 
 from tests.test_setup import TestSetup
 
-from tests.factories.video_factory import VideoFactory
-from tests.factories.liked_video_factory import DislikeVideoFactory
+from tests.factories.video import VideoFactory, DislikeVideoFactory
 
 from apps.video.models import Video, LikedVideo
 

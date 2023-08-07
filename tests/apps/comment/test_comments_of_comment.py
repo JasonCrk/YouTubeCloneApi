@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.comment_factory import CommentFactory
+from tests.factories.comment import CommentFactory
 
 from apps.comment.models import Comment
 

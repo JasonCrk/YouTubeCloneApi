@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.video_factory import VideoFactory
+from tests.factories.video import VideoFactory
 
 from apps.video.models import Video
 

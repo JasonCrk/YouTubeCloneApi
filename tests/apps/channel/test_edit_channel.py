@@ -1,5 +1,5 @@
-from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 
 from rest_framework import status
 

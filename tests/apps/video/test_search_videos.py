@@ -3,10 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.user_account_factory import UserFactory
-from tests.factories.video_factory import VideoFactory
-from tests.factories.video_view_factory import VideoViewFactory
-from tests.factories.liked_video_factory import LikeVideoFactory
+from tests.factories.user_account import UserFactory
+from tests.factories.video import VideoFactory, VideoViewFactory, LikeVideoFactory
 
 from apps.user.models import UserAccount
 

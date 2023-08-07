@@ -3,11 +3,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.channel_factory import ChannelFactory
-from tests.factories.link_factory import LinkFactory
+from tests.factories.channel import ChannelFactory
+from tests.factories.link import LinkFactory
 
 from apps.channel.models import Channel
-from apps.link.models import Link
 
 from apps.link.serializers import LinkListSerializer
 

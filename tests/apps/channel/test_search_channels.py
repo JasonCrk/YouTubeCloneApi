@@ -3,11 +3,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.user_account_factory import UserFactory
-from tests.factories.channel_factory import ChannelFactory
-from tests.factories.channel_subscription_factory import ChannelSubscriptionFactory
-from tests.factories.video_factory import VideoFactory
-from tests.factories.video_view_factory import VideoViewFactory
+from tests.factories.user_account import UserFactory
+from tests.factories.channel import ChannelFactory, ChannelSubscriptionFactory
+from tests.factories.video import VideoFactory, VideoViewFactory
 
 from apps.channel.models import Channel
 from apps.user.models import UserAccount

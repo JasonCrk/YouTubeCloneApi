@@ -3,8 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.comment_factory import CommentFactory
-from tests.factories.video_factory import VideoFactory
+from tests.factories.comment import CommentFactory
+from tests.factories.video import VideoFactory
 
 from apps.comment.models import Comment
 from apps.video.models import Video

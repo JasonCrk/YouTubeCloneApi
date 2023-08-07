@@ -4,7 +4,7 @@ from rest_framework import status
 
 from tests.test_setup import TestSetup
 
-from tests.factories.link_factory import LinkFactory
+from tests.factories.link import LinkFactory
 
 from apps.link.models import Link
 
