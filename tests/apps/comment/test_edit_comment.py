@@ -55,6 +55,19 @@ class TestEditComment(APITestCaseWithAuth):
 
         self.assertEqual(comment_updated.content, new_comment_content)
 
+    def test_to_check_if_the_attribute_was_edited_of_comment_it_has_been_updated_to_true(self):
+        self.client.put(
+            self.url,
+            {
+                'content': faker.paragraph()
+            },
+            format='json'
+        )
+
+        comment_updated = Comment.objects.get(id=self.test_comment.pk)
+
+        self.assertTrue(comment_updated.was_edited)
+
     def test_to_return_error_response_if_the_comment_does_not_exists(self):
         self.test_comment.delete()
 
