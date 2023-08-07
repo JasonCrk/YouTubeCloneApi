@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'apps.channel',
     'apps.link',
     'apps.video',
-    'apps.comment'
+    'apps.comment',
+    'apps.playlist'
 ]
 
 MIDDLEWARE = [
