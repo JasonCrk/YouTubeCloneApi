@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from tests.factories.link import LinkFactory
 
@@ -13,7 +13,7 @@ from faker import Faker
 faker = Faker()
 
 
-class TestEditLink(TestSetup):
+class TestEditLink(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
         self.url_name = 'edit_link'

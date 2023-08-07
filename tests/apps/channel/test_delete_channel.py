@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from tests.factories.channel import ChannelFactory
 from tests.factories.user_account import UserFactory
@@ -10,7 +10,7 @@ from tests.factories.user_account import UserFactory
 from apps.channel.models import Channel
 
 
-class TestDeleteChannel(TestSetup):
+class TestDeleteChannel(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 

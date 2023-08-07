@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from tests.factories.comment import CommentFactory, DislikeCommentFactory
 from tests.factories.video import VideoFactory
@@ -11,7 +11,7 @@ from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
 
 
-class TestDislikeComment(TestSetup):
+class TestDislikeComment(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 

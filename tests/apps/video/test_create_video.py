@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from apps.video.models import Video
 
@@ -14,7 +14,7 @@ from faker import Faker
 faker = Faker()
 
 
-class TestCreateVideo(TestSetup):
+class TestCreateVideo(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 

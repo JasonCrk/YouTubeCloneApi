@@ -7,7 +7,7 @@ from tests.factories.user_account import AdminFactory
 from tests.constants import TEST_PASSWORD
 
 
-class TestSetup(APITestCase):
+class APITestCaseWithAuth(APITestCase):
     def setUp(self):
         create_jwt_url = '/api/auth/jwt/create'
 

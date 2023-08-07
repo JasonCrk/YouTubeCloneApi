@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from tests.factories.comment import CommentFactory
 from tests.factories.video import VideoFactory
@@ -15,7 +15,7 @@ from faker import Faker
 faker = Faker()
 
 
-class TestCreateCommentForComment(TestSetup):
+class TestCreateCommentForComment(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 

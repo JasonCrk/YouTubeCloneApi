@@ -2,14 +2,14 @@ from django.urls import reverse
 
 from rest_framework import status
 
-from tests.test_setup import TestSetup
+from tests.setups import APITestCaseWithAuth
 
 from tests.factories.link import LinkFactory
 
 from apps.link.models import Link
 
 
-class TestDeleteLink(TestSetup):
+class TestDeleteLink(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 
