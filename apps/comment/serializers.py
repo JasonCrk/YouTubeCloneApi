@@ -49,3 +49,8 @@ class UpdateCommentSerializer(serializers.ModelSerializer):
         fields = (
             'content',
         )
+
+    def update(self, instance, validated_data):
+        validated_data['was_edited'] = True
+
+        return super().update(instance, validated_data)
