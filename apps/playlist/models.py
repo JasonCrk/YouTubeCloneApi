@@ -8,7 +8,7 @@ from apps.playlist.choices import VISIBILITY
 
 class Playlist(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-    thumbnail = models.URLField()
+    thumbnail = models.URLField(null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField()
     visibility = models.CharField(choices=VISIBILITY, default='PUBLIC')
