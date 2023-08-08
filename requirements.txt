@@ -28,3 +28,4 @@ Pillow==10.0.0
 
 # TESTING
 factory-boy===3.3.0
+coverage===7.2.7
