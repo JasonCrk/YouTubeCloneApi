@@ -11,3 +11,13 @@ class CreatePlaylistSerializer(serializers.ModelSerializer):
             'visibility',
             'channel',
         )
+
+
+class UpdatePlaylistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = (
+            'name',
+            'description',
+            'visibility',
+        )
