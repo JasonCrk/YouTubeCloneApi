@@ -3,7 +3,7 @@ from django.db import models
 from apps.channel.models import Channel
 from apps.video.models import Video
 
-from apps.playlist.choices import VISIBILITY
+from apps.playlist.choices import Visibility
 
 
 class Playlist(models.Model):
@@ -11,7 +11,11 @@ class Playlist(models.Model):
     thumbnail = models.URLField(null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField()
-    visibility = models.CharField(choices=VISIBILITY, default='PUBLIC')
+    visibility = models.CharField(
+        max_length=3,
+        choices=Visibility.choices,
+        default=Visibility.PRIVATE
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
