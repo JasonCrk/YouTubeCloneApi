@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   youtube_clone_api:
+    container_name: youtube_clone_api
     build: .
     ports:
       - '4000:8000'
