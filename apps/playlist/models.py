@@ -23,11 +23,31 @@ class Playlist(models.Model):
         return self.name
 
 
+class PlaylistVideoManager(models.Manager):
+    def create(self, video, playlist):
+        last_playlist_video = self.get_queryset().filter(
+            playlist=playlist
+        ).order_by('position').last()
+
+        if last_playlist_video is not None:
+            position = last_playlist_video.position + 1
+        else:
+            position = 0
+
+        return super().create(
+            video=video,
+            playlist=playlist,
+            position=position
+        )
+
+
 class PlaylistVideo(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
     position = models.PositiveSmallIntegerField()
     date_added = models.DateTimeField(auto_now_add=True)
+
+    objects = PlaylistVideoManager()
 
     def __str__(self) -> str:
         return self.video.title
