@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from apps.playlist.models import Playlist
+from apps.playlist.models import Playlist, PlaylistVideo
+from apps.video.models import Video
 
 from apps.playlist.serializers import CreatePlaylistSerializer, UpdatePlaylistSerializer
 
@@ -27,6 +28,51 @@ class CreatePlaylistView(APIView):
 
         return Response({
             'message': f'Added to {playlist_created.validated_data["name"]}'
+        }, status=status.HTTP_201_CREATED)
+
+
+class SaveVideoToPlaylistView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, playlist_id, format=None):
+        try:
+            playlist = Playlist.objects.get(id=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if playlist.channel != request.user.current_channel:
+            return Response({
+                'message': 'You are not a owner of this playlist'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            video_id = int(request.data.get('video_id'))
+        except (ValueError, TypeError):
+            return Response({
+                'message': 'The video ID must be a number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            video = Video.objects.get(id=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exists'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if PlaylistVideo.objects.filter(playlist=playlist, video=video).exists():
+            return Response({
+                'message': 'The video is already in the playlist'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        PlaylistVideo.objects.create(
+            video=video,
+            playlist=playlist
+        ).save()
+
+        return Response({
+            'message': f'Added to {playlist.name}'
         }, status=status.HTTP_201_CREATED)
 
 
