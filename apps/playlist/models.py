@@ -1,3 +1,5 @@
+from typing import Dict, Tuple
+
 from django.db import models
 
 from apps.channel.models import Channel
@@ -51,3 +53,13 @@ class PlaylistVideo(models.Model):
 
     def __str__(self) -> str:
         return self.video.title
+
+    def delete(self) -> Tuple[int, Dict[str, int]]:
+        PlaylistVideo.objects.filter(
+            playlist=self.playlist,
+            position__gt=self.position
+        ).update(
+            position=models.F('position') - 1
+        )
+
+        return super(PlaylistVideo, self).delete()
