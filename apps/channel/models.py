@@ -32,7 +32,7 @@ class Channel(models.Model):
     objects = ChannelManager()
 
     def __str__(self):
-        return self.user.username
+        return self.name
 
 
 class ChannelSubscription(models.Model):
