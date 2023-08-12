@@ -13,9 +13,6 @@ class Comment(models.Model):
     was_edited = models.BooleanField(default=False)
     likes = models.ManyToManyField(Channel, through='LikedComment', related_name='comment_likes')
 
-    class Meta:
-        ordering = ['publication_date']
-
     def __str__(self):
         return self.channel.name
 
