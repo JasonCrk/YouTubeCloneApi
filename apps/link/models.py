@@ -8,7 +8,7 @@ class LinkManager(models.Manager):
     def create(self, channel, title, url):
         last_channel_link = self.get_queryset().filter(
             channel=channel
-        ).order_by('position').last()
+        ).last()
 
         if last_channel_link is not None:
             position = last_channel_link.position + 1
@@ -32,6 +32,9 @@ class Link(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
 
     objects = LinkManager()
+
+    class Meta:
+        ordering = ['position']
 
     def __str__(self):
         return self.title
