@@ -106,6 +106,29 @@ class EditPlaylistView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class DeletePlaylistView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, playlist_id, format=None):
+        try:
+            playlist = Playlist.objects.select_related('channel').get(id=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if playlist.channel != request.user.current_channel:
+            return Response({
+                'message': 'You are not the owner of this playlist'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        playlist.delete()
+
+        return Response({
+            'message': 'The playlist has been deleted'
+        }, status=status.HTTP_200_OK)
+
+
 class RemoveVideoFromPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
 
