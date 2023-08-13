@@ -186,7 +186,10 @@ class SubscribeChannelView(APIView):
                 'message': 'Subscription removed'
             }, status=status.HTTP_200_OK)
         except ChannelSubscription.DoesNotExist:
-            channel.subscriptions.add(request.user.current_channel)
+            ChannelSubscription.objects.create(
+                subscriber=request.user.current_channel,
+                subscribing=channel
+            ).save()
 
             return Response({
                 'message': 'Subscription added'
