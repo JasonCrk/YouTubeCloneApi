@@ -29,7 +29,7 @@ class PlaylistVideoManager(models.Manager):
     def create(self, video, playlist):
         last_playlist_video = self.get_queryset().filter(
             playlist=playlist
-        ).order_by('position').last()
+        ).last()
 
         if last_playlist_video is not None:
             position = last_playlist_video.position + 1
@@ -53,6 +53,9 @@ class PlaylistVideo(models.Model):
 
     def __str__(self) -> str:
         return self.video.title
+
+    class Meta:
+        ordering = ['position']
 
     def delete(self) -> Tuple[int, Dict[str, int]]:
         PlaylistVideo.objects.filter(
