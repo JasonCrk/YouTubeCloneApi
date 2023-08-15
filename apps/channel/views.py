@@ -148,7 +148,7 @@ class SwitchChannelView(APIView):
         request.user.current_channel = channel_to_change
         request.user.save()
 
-        return HttpResponse(status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 class SubscribeChannelView(APIView):
