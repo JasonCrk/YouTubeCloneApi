@@ -203,11 +203,6 @@ class EditChannelView(APIView):
     def patch(self, request, format=None):
         channel_data = request.data.dict()
 
-        if len(channel_data.keys()) == 0:
-            return Response({
-                'message': 'The data is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         updated_channel = UpdateChannelSerializer(
             request.user.current_channel,
             data=channel_data,
