@@ -77,12 +77,22 @@ class SearchChannelsView(APIView):
         if sort_by == SortByEnum.UPLOAD_DATE.value:
             filtered_channels = filtered_channels.order_by('joined')
         elif sort_by == SortByEnum.VIEW_COUNT.value:
-            total_video_views = Subquery(VideoView.objects.filter(video__channel__pk=OuterRef('pk')).values_list('count'))
+            total_video_views = Subquery(
+                VideoView.objects.filter(
+                    video__channel__pk=OuterRef('pk')
+                ).values_list('count')
+            )
+
             filtered_channels = filtered_channels.annotate(
                 total_views=Sum(total_video_views)
             ).order_by('total_views')
         elif sort_by == SortByEnum.RATING.value:
-            total_channel_subscribers = Subquery(ChannelSubscription.objects.filter(subscribing__pk=OuterRef('pk')).values_list('pk'))
+            total_channel_subscribers = Subquery(
+                ChannelSubscription.objects.filter(
+                    subscribing__pk=OuterRef('pk')
+                ).values_list('pk')
+            )
+
             filtered_channels = filtered_channels.annotate(
                 total_subscribers=Count(total_channel_subscribers)
             ).order_by('-total_subscribers')
@@ -214,7 +224,7 @@ class EditChannelView(APIView):
                 'errors': updated_channel.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if channel_data.get('banner') != None:
+        if channel_data.get('banner') is not None:
             try:
                 banner_image_url = upload_image(channel_data.get('banner'), 'banners')
                 updated_channel.validated_data['banner_url'] = banner_image_url
@@ -223,7 +233,7 @@ class EditChannelView(APIView):
                     'message': 'Failed to upload channel banner, please try again later'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-        if channel_data.get('picture') != None:
+        if channel_data.get('picture') is not None:
             try:
                 picture_image_url = upload_image(channel_data.get('picture'), 'pictures')
                 updated_channel.validated_data['picture_url'] = picture_image_url
