@@ -137,7 +137,7 @@ class SwitchChannelView(APIView):
             channel_to_change = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({
-                'message': 'The channel does not exists'
+                'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if channel_to_change.user != request.user:
