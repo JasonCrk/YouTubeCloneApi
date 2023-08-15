@@ -12,19 +12,25 @@ from apps.channel.serializers import ChannelDetailsSerializer
 
 class TestChannelDetailsById(APITestCase):
     def setUp(self):
-        self.test_channel: Channel = ChannelFactory.create()
-        self.url = reverse('channel_details_by_id', kwargs={'pk': self.test_channel.pk})
+        self.channel: Channel = ChannelFactory.create()
+        self.url = reverse('channel_details_by_id', kwargs={'pk': self.channel.pk})
 
-    def test_to_return_channel_details_by_id_successfully(self):
+    def test_returns_the_serialized_channel(self):
+        """
+        Should return the serialized channel and a 200 status code
+        """
         response = self.client.get(self.url)
 
-        serialized_channel = ChannelDetailsSerializer(self.test_channel)
+        serialized_channel = ChannelDetailsSerializer(self.channel)
 
         self.assertDictEqual(response.data, serialized_channel.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_to_return_error_response_and_status_code_404_if_the_channel_does_not_exists(self):
-        self.test_channel.delete()
+    def test_channel_does_not_exist(self):
+        """
+        Should return an error message and a 404 status code if the channel does not exist
+        """
+        self.channel.delete()
 
         response = self.client.get(self.url)
 

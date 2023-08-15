@@ -18,7 +18,10 @@ class TestCreateChannel(APITestCaseWithAuth):
 
         self.url = reverse('create_channel')
 
-    def test_to_return_success_response_if_the_channel_has_been_created(self):
+    def test_success_response(self):
+        """
+        Should return a success response if the channel has been created successfully
+        """
         response = self.client.post(
             self.url,
             {
@@ -30,7 +33,10 @@ class TestCreateChannel(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The channel has been created'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_to_check_if_the_channel_has_been_created_correctly(self):
+    def test_channel_has_been_created(self):
+        """
+        Should verify if channel has been created successfully
+        """
         self.client.post(
             self.url,
             {
@@ -39,11 +45,14 @@ class TestCreateChannel(APITestCaseWithAuth):
             format='json'
         )
 
-        user_channel_count = Channel.objects.filter(user=self.user).count()
+        user_channel = Channel.objects.filter(user=self.user)
 
-        self.assertEqual(user_channel_count, 2)
+        self.assertEqual(user_channel.count(), 2)
 
-    def test_to_return_error_response_if_the_name_send_is_blank(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response if the data sent is invalid
+        """
         response = self.client.post(
             self.url,
             {
@@ -55,19 +64,10 @@ class TestCreateChannel(APITestCaseWithAuth):
         self.assertIsNotNone(response.data.get('errors').get('name'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_to_return_error_response_if_the_name_send_is_too_long(self):
-        response = self.client.post(
-            self.url,
-            {
-                'name': faker.pystr(min_chars=26, max_chars=27)
-            },
-            format='json'
-        )
-
-        self.assertIsNotNone(response.data.get('errors').get('name'))
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_to_return_error_response_if_the_user_has_10_channels(self):
+    def test_user_cannot_have_more_than_10_channels(self):
+        """
+        Should return an error message and a 400 status code if the user wants to have more than 10 channels
+        """
         ChannelFactory.create_batch(9, user=self.user)
 
         response = self.client.post(

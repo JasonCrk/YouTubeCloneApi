@@ -24,7 +24,10 @@ class TestSubscribedChannels(APITestCaseWithAuth):
 
         self.channel_without_subscribers = ChannelFactory.create(user=self.user)
 
-    def test_to_return_all_channels_subscribed_successful(self):
+    def test_channels_subscribed(self):
+        """
+        Should return a list of channels you are subscribed
+        """
         response = self.client.get(self.url)
 
         response_channels = list(map(lambda channel: dict(channel), response.data.get('data')))

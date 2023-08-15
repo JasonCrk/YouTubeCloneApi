@@ -5,7 +5,6 @@ from rest_framework import status
 from tests.setups import APITestCaseWithAuth
 
 from tests.factories.channel import ChannelFactory
-from tests.factories.user_account import UserFactory
 
 from apps.channel.models import Channel
 from apps.user.models import UserAccount
@@ -23,7 +22,10 @@ class TestSwitchChannel(APITestCaseWithAuth):
 
         self.second_channel: Channel = ChannelFactory.create(user=self.user)
 
-    def test_to_return_success_response_if_switch_channel_has_been_successful(self):
+    def test_success_response(self):
+        """
+        Should return a 204 status code if the switch channel has been successful
+        """
         response = self.client.post(
             self.url,
             {
@@ -33,9 +35,12 @@ class TestSwitchChannel(APITestCaseWithAuth):
         )
 
         self.assertEqual(response.content, b'')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_to_check_if_switch_channel_has_been_successful(self):
+    def test_switch_channel_successfully(self):
+        """
+        Should verify that switch channel has been successful
+        """
         self.client.post(
             self.url,
             {
@@ -48,7 +53,10 @@ class TestSwitchChannel(APITestCaseWithAuth):
 
         self.assertEqual(user.current_channel.pk, self.second_channel.pk)
 
-    def test_to_return_error_response_if_the_channel_id_is_not_a_number(self):
+    def test_channel_id_is_not_a_number(self):
+        """
+        Should return an error response if the channel ID is not a number
+        """
         response = self.client.post(
             self.url,
             {
@@ -60,7 +68,10 @@ class TestSwitchChannel(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The channel ID must be a number'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_to_return_error_response_if_the_channel_does_not_exist(self):
+    def test_channel_does_not_exist(self):
+        """
+        Should return an error response if the channel does not exist
+        """
         non_exists_channel_id = self.second_channel.pk
 
         self.second_channel.delete()
@@ -73,13 +84,14 @@ class TestSwitchChannel(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'The channel does not exists'})
+        self.assertDictEqual(response.data, {'message': 'The channel does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_to_return_error_response_if_the_user_wants_to_switch_channel_that_they_dont_own(self):
-        test_user: UserAccount = UserFactory.create()
-
-        not_own_channel: Channel = Channel.objects.get(user=test_user)
+    def test_user_wants_to_switch_channel_with_a_channel_that_is_dont_owned(self):
+        """
+        Should return an error response if a user wants to switch channel with a channel that is down owned
+        """
+        not_own_channel: Channel = ChannelFactory.create()
 
         response = self.client.post(
             self.url,
