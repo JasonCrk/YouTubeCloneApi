@@ -243,11 +243,6 @@ class DeleteChannelView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, channel_id, format=None):
-        if Channel.objects.filter(user=request.user).count() < 2:
-            return Response({
-                'message': "You can't delete your last channel"
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         try:
             channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
