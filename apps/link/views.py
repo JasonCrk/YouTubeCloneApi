@@ -11,7 +11,7 @@ from apps.channel.models import Channel
 from apps.link.serializers import LinkListSerializer, CreateLinkSerializer, UpdateLinkSerializer
 
 
-class GetChannelLinksView(APIView):
+class RetrieveChannelLinksView(APIView):
     def get(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(id=channel_id)
