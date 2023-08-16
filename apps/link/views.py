@@ -17,7 +17,7 @@ class GetChannelLinksView(APIView):
             channel = Channel.objects.get(id=channel_id)
         except Channel.DoesNotExist:
             return Response({
-                'message': 'The channel does not exists'
+                'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         channel_links = Link.objects.filter(channel=channel).order_by('position')
@@ -73,7 +73,7 @@ class RepositionLinkView(APIView):
             link: Link = Link.objects.get(id=link_id)
         except Link.DoesNotExist:
             return Response({
-                'message': 'The link does not exists'
+                'message': 'The link does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if link.channel != request.user.current_channel:
@@ -129,7 +129,7 @@ class EditLinkView(APIView):
             link: Link = Link.objects.get(id=link_id)
         except Link.DoesNotExist:
             return Response({
-                'message': 'The link does not exists'
+                'message': 'The link does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         link_updated = UpdateLinkSerializer(link, data=request.data)
@@ -159,7 +159,7 @@ class DeleteLinkView(APIView):
             link: Link = Link.objects.get(id=link_id)
         except Link.DoesNotExist:
             return Response({
-                'message': 'The link does not exists'
+                'message': 'The link does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if link.channel != request.user.current_channel:
