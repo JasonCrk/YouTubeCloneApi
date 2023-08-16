@@ -15,12 +15,12 @@ urlpatterns = [
     ),
     path(
         'video/<int:video_id>',
-        views.GetVideoCommentsView.as_view(),
+        views.RetrieveVideoCommentsView.as_view(),
         name='video_comments'
     ),
     path(
         'comment/<int:comment_id>',
-        views.GetCommentsOfCommentView.as_view(),
+        views.RetrieveCommentsOfCommentView.as_view(),
         name='comments_of_comment'
     ),
     path(

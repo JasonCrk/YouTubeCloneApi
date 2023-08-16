@@ -9,13 +9,13 @@ from apps.video.models import Video
 from apps.comment.serializers import ListCommentSerializer, CreateCommentSerializer, UpdateCommentSerializer
 
 
-class GetVideoCommentsView(APIView):
+class RetrieveVideoCommentsView(APIView):
     def get(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         video_comments = Comment.objects.filter(video=video, comment__isnull=True)
@@ -27,13 +27,13 @@ class GetVideoCommentsView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class GetCommentsOfCommentView(APIView):
+class RetrieveCommentsOfCommentView(APIView):
     def get(self, request, comment_id, format=None):
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The comment does not exists'
+                'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         comments_of_comment = Comment.objects.filter(comment=comment)
@@ -53,7 +53,7 @@ class CreateVideoCommentView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'the video does not exists'
+                'message': 'the video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         new_comment = CreateCommentSerializer(data={
@@ -79,18 +79,18 @@ class CreateCommentForCommentView(APIView):
 
     def post(self, request, comment_id, format=None):
         try:
-            parent_comment = Comment.objects.get(id=comment_id)
+            comment_parent = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The parent comment does not exists'
+                'message': 'The comment parent does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        new_comment = CreateCommentSerializer(data={
-            'channel': request.user.current_channel.pk,
-            'comment': parent_comment.pk,
-            'video': parent_comment.video.pk,
-            'content': request.data.get('content')
-        })
+        data = request.data
+        data['channel'] = request.user.current_channel.pk
+        data['comment'] = comment_parent.pk
+        data['video'] = comment_parent.video.pk
+
+        new_comment = CreateCommentSerializer(data=data)
 
         if not new_comment.is_valid():
             return Response({
@@ -119,7 +119,7 @@ class LikeCommentView(APIView):
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The comment does not exists'
+                'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         like_comment = LikedComment.objects.filter(
@@ -127,7 +127,7 @@ class LikeCommentView(APIView):
             comment=comment
         ).first()
 
-        if like_comment != None:
+        if like_comment is not None:
             if like_comment.liked:
                 like_comment.delete()
 
@@ -164,7 +164,7 @@ class DislikeCommentView(APIView):
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The comment does not exists'
+                'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         dislike_comment = LikedComment.objects.filter(
@@ -172,7 +172,7 @@ class DislikeCommentView(APIView):
             comment=comment
         ).first()
 
-        if dislike_comment != None:
+        if dislike_comment is not None:
             if dislike_comment.liked == False:
                 dislike_comment.delete()
 
@@ -202,15 +202,14 @@ class EditCommentView(APIView):
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The comment does not exists'
+                'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if request.data.get('content') == comment.content:
-            return Response({
-                'message': 'The comment content has not been modified'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        comment_updated = UpdateCommentSerializer(comment, data={'content': request.data['content']}, partial=True)
+        comment_updated = UpdateCommentSerializer(
+            comment,
+            data={'content': request.data['content']},
+            partial=True
+        )
 
         if not comment_updated.is_valid():
             return Response({
@@ -232,7 +231,7 @@ class DeleteCommentView(APIView):
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response({
-                'message': 'The comment does not exists'
+                'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if comment.channel != request.user.current_channel:
