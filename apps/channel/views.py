@@ -16,7 +16,7 @@ from youtube_clone.utils.storage import upload_image
 from youtube_clone.enums import SortByEnum
 
 
-class GetChannelDetailsByIdView(generics.RetrieveAPIView):
+class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
     queryset = Channel.objects.all()
     serializer_class = ChannelDetailsSerializer
 
@@ -29,7 +29,7 @@ class GetChannelDetailsByIdView(generics.RetrieveAPIView):
         return super().handle_exception(exc)
 
 
-class GetChannelDetailsByHandleView(APIView):
+class RetrieveChannelDetailsByHandleView(APIView):
     def get(self, request, channel_handle, format=None):
         try:
             channel = Channel.objects.get(handle=channel_handle)
@@ -43,7 +43,7 @@ class GetChannelDetailsByHandleView(APIView):
         return Response(serialized_channel.data, status=status.HTTP_200_OK)
 
 
-class GetSubscribedChannelsView(APIView):
+class RetrieveSubscribedChannelsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
