@@ -18,11 +18,15 @@ class TestCreateVideoComment(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 
-        self.test_video: Video = VideoFactory.create(channel=self.user.current_channel)
+        self.video: Video = VideoFactory.create(channel=self.user.current_channel)
 
-        self.url = reverse('create_video_comment', kwargs={'video_id': self.test_video.pk})
+        self.url_name = 'create_video_comment'
+        self.url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
 
-    def test_to_return_success_response_if_the_creation_of_a_comment_to_a_video_has_been_successful(self):
+    def test_success_response(self):
+        """
+        Should return a success response if the comment has been created
+        """
         response = self.client.post(
             self.url,
             {
@@ -34,7 +38,10 @@ class TestCreateVideoComment(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The comment has been created'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_to_check_if_comment_creation_has_been_successful(self):
+    def test_comment_has_been_created(self):
+        """
+        Should verify if the comment has been created successfully
+        """
         self.client.post(
             self.url,
             {
@@ -44,27 +51,33 @@ class TestCreateVideoComment(APITestCaseWithAuth):
         )
 
         comments_count = Comment.objects.filter(
-            video=self.test_video,
+            video=self.video,
             channel=self.user.current_channel
         ).count()
 
         self.assertEqual(comments_count, 1)
 
-    def test_to_return_error_response_if_the_video_does_not_exists(self):
-        url = reverse('create_video_comment', kwargs={'video_id': 1000})
+    def test_video_does_not_exist(self):
+        """
+        Should return an error response and a 404 status code if the video does not exist
+        """
+        self.video.delete()
 
         response = self.client.post(
-            url,
+            self.url,
             {
                 'content': faker.paragraph()
             },
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'the video does not exists'})
+        self.assertDictEqual(response.data, {'message': 'the video does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_to_return_error_response_if_the_comment_content_is_blank(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response and a 400 status code if the data sent is invalid
+        """
         response = self.client.post(
             self.url,
             {

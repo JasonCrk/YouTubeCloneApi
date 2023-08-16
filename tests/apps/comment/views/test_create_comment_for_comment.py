@@ -5,10 +5,8 @@ from rest_framework import status
 from tests.setups import APITestCaseWithAuth
 
 from tests.factories.comment import CommentFactory
-from tests.factories.video import VideoFactory
 
 from apps.comment.models import Comment
-from apps.video.models import Video
 
 from faker import Faker
 
@@ -19,16 +17,13 @@ class TestCreateCommentForComment(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 
-        self.test_video: Video = VideoFactory.create(channel=self.user.current_channel)
+        self.comment: Comment = CommentFactory.create(channel=self.user.current_channel)
+        self.url = reverse('create_comment_for_comment', kwargs={'comment_id': self.comment.pk})
 
-        self.test_comment: Comment = CommentFactory.create(
-            channel=self.user.current_channel,
-            video=self.test_video
-        )
-
-        self.url = reverse('create_comment_for_comment', kwargs={'comment_id': self.test_comment.pk})
-
-    def test_to_return_success_response_if_the_comment_creation_has_been_successful(self):
+    def test_success_response(self):
+        """
+        Should return a success response if the comment has been created
+        """
         response = self.client.post(
             self.url,
             {
@@ -40,7 +35,10 @@ class TestCreateCommentForComment(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The comment has been created'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_to_check_if_the_comment_creation_has_been_successful(self):
+    def test_comment_has_been_created(self):
+        """
+        Should verify if the comment has been created successfully
+        """
         self.client.post(
             self.url,
             {
@@ -49,11 +47,14 @@ class TestCreateCommentForComment(APITestCaseWithAuth):
             format='json'
         )
 
-        number_comment_comments = Comment.objects.filter(comment=self.test_comment).count()
+        comments_of_comment = Comment.objects.filter(comment=self.comment)
 
-        self.assertEqual(number_comment_comments, 1)
+        self.assertEqual(comments_of_comment.count(), 1)
 
-    def test_to_return_error_response_if_the_comment_content_is_blank(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response and a 400 status code if the data sent is invalid
+        """
         response = self.client.post(
             self.url,
             {
@@ -62,11 +63,14 @@ class TestCreateCommentForComment(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertIsNotNone(response.data.get('errors').get('content'))
+        self.assertIsNotNone(response.data.get('errors').get('content')[0])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_to_return_error_response_if_the_parent_comment_does_not_exists(self):
-        self.test_comment.delete()
+    def test_comment_parent_does_not_exist(self):
+        """
+        Should return an error response and a 404 status code if the comment parent does not exist
+        """
+        self.comment.delete()
 
         response = self.client.post(
             self.url,
@@ -76,5 +80,5 @@ class TestCreateCommentForComment(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'The parent comment does not exists'})
+        self.assertDictEqual(response.data, {'message': 'The comment parent does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

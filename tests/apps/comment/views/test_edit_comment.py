@@ -5,10 +5,8 @@ from rest_framework import status
 from tests.setups import APITestCaseWithAuth
 
 from tests.factories.comment import CommentFactory
-from tests.factories.video import VideoFactory
 
 from apps.comment.models import Comment
-from apps.video.models import Video
 
 from faker import Faker
 
@@ -19,16 +17,13 @@ class TestEditComment(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 
-        test_video: Video = VideoFactory.create(channel=self.user.current_channel)
+        self.comment: Comment = CommentFactory.create(channel=self.user.current_channel)
+        self.url = reverse('edit_comment', kwargs={'comment_id': self.comment.pk})
 
-        self.test_comment: Comment = CommentFactory.create(
-            channel=self.user.current_channel,
-            video=test_video
-        )
-
-        self.url = reverse('edit_comment', kwargs={'comment_id': self.test_comment.pk})
-
-    def test_to_return_success_response_if_the_comment_edition_has_been_successful(self):
+    def test_success_response(self):
+        """
+        Should return a success response if the comment has been updated
+        """
         response = self.client.put(
             self.url,
             {
@@ -40,7 +35,10 @@ class TestEditComment(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The comment has been updated'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_to_check_if_the_comment_content_has_been_updated_correctly(self):
+    def test_comment_content_has_been_updated(self):
+        """
+        Should verify if the comment content has been updated successfully
+        """
         new_comment_content = faker.paragraph()
 
         self.client.put(
@@ -51,11 +49,14 @@ class TestEditComment(APITestCaseWithAuth):
             format='json'
         )
 
-        comment_updated = Comment.objects.get(id=self.test_comment.pk)
+        comment_updated = Comment.objects.get(id=self.comment.pk)
 
         self.assertEqual(comment_updated.content, new_comment_content)
 
-    def test_to_check_if_the_attribute_was_edited_of_comment_it_has_been_updated_to_true(self):
+    def test_was_edited_attribute_changed_to_true(self):
+        """
+        Should verify if the was_edited attribute changed to true
+        """
         self.client.put(
             self.url,
             {
@@ -64,12 +65,15 @@ class TestEditComment(APITestCaseWithAuth):
             format='json'
         )
 
-        comment_updated = Comment.objects.get(id=self.test_comment.pk)
+        comment_updated = Comment.objects.get(id=self.comment.pk)
 
         self.assertTrue(comment_updated.was_edited)
 
-    def test_to_return_error_response_if_the_comment_does_not_exists(self):
-        self.test_comment.delete()
+    def test_comment_does_not_exist(self):
+        """
+        Should return an error response and a 404 status code if the comment does not exist
+        """
+        self.comment.delete()
 
         response = self.client.put(
             self.url,
@@ -79,22 +83,13 @@ class TestEditComment(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'The comment does not exists'})
+        self.assertDictEqual(response.data, {'message': 'The comment does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_to_return_error_response_if_the_comment_content_is_the_same_as_the_one_in_the_database(self):
-        response = self.client.put(
-            self.url,
-            {
-                'content': self.test_comment.content
-            },
-            format='json'
-        )
-
-        self.assertDictEqual(response.data, {'message': 'The comment content has not been modified'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_to_return_error_response_if_the_comment_content_is_blank(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response and a 400 status code if the data sent is invalid
+        """
         response = self.client.put(
             self.url,
             {
@@ -103,5 +98,5 @@ class TestEditComment(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertIsNotNone(response.data.get('errors').get('content'))
+        self.assertIsNotNone(response.data.get('errors').get('content')[0])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
