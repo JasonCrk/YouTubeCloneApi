@@ -12,7 +12,7 @@ class Playlist(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
     thumbnail = models.URLField(null=True, blank=True)
     name = models.CharField(max_length=150)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     visibility = models.CharField(
         max_length=3,
         choices=Visibility.choices,
