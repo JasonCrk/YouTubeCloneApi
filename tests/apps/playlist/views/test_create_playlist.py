@@ -7,6 +7,8 @@ from tests.setups import APITestCaseWithAuth
 from apps.playlist.models import Playlist
 from apps.playlist.choices import Visibility
 
+from apps.playlist.serializers import PlaylistListSerializer
+
 from faker import Faker
 
 faker = Faker()
@@ -18,7 +20,10 @@ class TestCreatePlaylist(APITestCaseWithAuth):
 
         self.url = reverse('create_playlist')
 
-    def test_to_return_success_response_if_the_playlist_has_been_created_successfully(self):
+    def test_return_a_serialized_playlist(self):
+        """
+        Should return a serialized playlist
+        """
         playlist_name = faker.pystr()
 
         response = self.client.post(
@@ -30,10 +35,17 @@ class TestCreatePlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': f'Added to {playlist_name}'})
+        playlist = Playlist.objects.filter(name=playlist_name).first()
+
+        serialized_playlist = PlaylistListSerializer(playlist)
+
+        self.assertDictEqual(response.data, dict(serialized_playlist.data))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_to_check_if_the_playlist_in_private_has_been_created_successfully(self):
+    def test_playlist_has_been_created(self):
+        """
+        Should verify if the playlist has been created successfully
+        """
         self.client.post(
             self.url,
             {
@@ -43,32 +55,24 @@ class TestCreatePlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        count_channel_playlists = Playlist.objects.filter(channel=self.user.current_channel).count()
+        channel_playlist = Playlist.objects.filter(channel=self.user.current_channel)
 
-        self.assertEqual(count_channel_playlists, 1)
+        self.assertEqual(channel_playlist.count(), 1)
 
-    def test_to_return_error_response_and_status_code_400_if_the_playlist_name_exceeds_150_characters(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response and a 400 status code if the data sent is invalid
+        """
         response = self.client.post(
             self.url,
             {
                 'name': faker.pystr(min_chars=151, max_chars=152),
-                'visibility': Visibility.PRIVATE
-            },
-            format='json'
-        )
-
-        self.assertIsNotNone(response.data.get('errors').get('name'))
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_to_return_error_response_and_status_code_400_if_the_visibility_does_not_exist_among_the_options(self):
-        response = self.client.post(
-            self.url,
-            {
-                'name': faker.pystr(),
                 'visibility': faker.pystr()
             },
             format='json'
         )
 
-        self.assertIsNotNone(response.data.get('errors').get('visibility'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertIn('name', response.data.get('errors'))
+        self.assertIn('visibility', response.data.get('errors'))
