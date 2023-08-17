@@ -12,9 +12,31 @@ from apps.playlist.models import Playlist
 class TestDeletePlaylist(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
+
         self.playlist: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
+
         self.url_name = 'delete_playlist'
         self.url = reverse(self.url_name, kwargs={'playlist_id': self.playlist.pk})
+
+    def test_success_response(self):
+        """
+        Should return an success message and 200 status code
+        if the playlist has been deleted successfully
+        """
+        response = self.client.delete(self.url)
+
+        self.assertDictEqual(response.data, {'message': 'The playlist has been deleted'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_playlist_has_been_deleted(self):
+        """
+        Should verify that the playlist has been deleted successfully
+        """
+        self.client.delete(self.url)
+
+        playlist_deleted = Playlist.objects.filter(id=self.playlist.pk)
+
+        self.assertFalse(playlist_deleted.exists())
 
     def test_playlist_does_not_exist(self):
         """
@@ -40,23 +62,3 @@ class TestDeletePlaylist(APITestCaseWithAuth):
 
         self.assertDictEqual(response.data, {'message': 'You are not the owner of this playlist'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_success_message_response(self):
-        """
-        Should return an success message and 200 status code
-        if the playlist has been deleted successfully
-        """
-        response = self.client.delete(self.url)
-
-        self.assertDictEqual(response.data, {'message': 'The playlist has been deleted'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_verify_that_the_playlist_has_been_deleted(self):
-        """
-        Should verify that the playlist has been deleted from the database
-        """
-        self.client.delete(self.url)
-
-        playlist_deleted = Playlist.objects.filter(id=self.playlist.pk)
-
-        self.assertFalse(playlist_deleted.exists())

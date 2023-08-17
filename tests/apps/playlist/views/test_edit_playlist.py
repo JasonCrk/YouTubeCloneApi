@@ -17,11 +17,16 @@ faker = Faker()
 class TestEditPlaylist(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
-        self.test_playlist: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
-        self.url_name = 'edit_playlist'
-        self.url = reverse(self.url_name, kwargs={'playlist_id': self.test_playlist.pk})
 
-    def test_to_return_success_response_if_the_playlist_has_been_updated_successfully(self):
+        self.playlist: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
+
+        self.url_name = 'edit_playlist'
+        self.url = reverse(self.url_name, kwargs={'playlist_id': self.playlist.pk})
+
+    def test_success_response(self):
+        """
+        Should return a success response if the playlist has been updated
+        """
         response = self.client.patch(
             self.url,
             {
@@ -35,7 +40,10 @@ class TestEditPlaylist(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'Playlist updated'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_to_check_if_the_playlist_name_has_been_updated_successfully(self):
+    def test_playlist_name_has_been_updated(self):
+        """
+        Should verify if the playlist name has been updated
+        """
         new_playlist_name = faker.pystr()
 
         self.client.patch(
@@ -46,11 +54,14 @@ class TestEditPlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        test_playlist_updated = Playlist.objects.get(id=self.test_playlist.pk)
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
 
-        self.assertEqual(new_playlist_name, test_playlist_updated.name)
+        self.assertEqual(new_playlist_name, playlist_updated.name)
 
-    def test_to_check_if_the_playlist_description_has_been_updated_successfully(self):
+    def test_playlist_description_has_been_updated(self):
+        """
+        Should verify if the playlist description has been updated successfully
+        """
         new_playlist_description = faker.paragraph()
 
         self.client.patch(
@@ -61,9 +72,9 @@ class TestEditPlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        test_playlist_updated = Playlist.objects.get(id=self.test_playlist.pk)
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
 
-        self.assertEqual(new_playlist_description, test_playlist_updated.description)
+        self.assertEqual(new_playlist_description, playlist_updated.description)
 
     def test_to_check_if_the_playlist_visibility_has_been_updated_successfully(self):
         new_playlist_visibility = Visibility.PUBLIC.value
@@ -76,12 +87,15 @@ class TestEditPlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        test_playlist_updated = Playlist.objects.get(id=self.test_playlist.pk)
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
 
-        self.assertEqual(new_playlist_visibility, test_playlist_updated.visibility)
+        self.assertEqual(new_playlist_visibility, playlist_updated.visibility)
 
-    def test_to_return_error_response_and_status_code_404_if_the_playlist_does_not_exists(self):
-        self.test_playlist.delete()
+    def test_playlist_does_not_exist(self):
+        """
+        Should return an error response and a 404 status code if the playlist does not exist
+        """
+        self.playlist.delete()
 
         response = self.client.patch(
             self.url,
@@ -91,16 +105,19 @@ class TestEditPlaylist(APITestCaseWithAuth):
             format='json'
         )
 
-        self.assertDictEqual(response.data, {'message': 'The playlist does not exists'})
+        self.assertDictEqual(response.data, {'message': 'The playlist does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_to_return_error_response_and_status_code_401_if_a_channel_wants_to_edit_a_playlist_that_he_does_not_own(self):
+    def test_channel_wants_to_edit_a_playlist_it_does_not_own(self):
+        """
+        Should return an error response and a 401 status code if a channel wants to edit a playlist it does not own
+        """
         not_own_playlist = PlaylistFactory.create()
 
-        url = reverse(self.url_name, kwargs={'playlist_id': not_own_playlist.pk})
+        not_own_playlist_url = reverse(self.url_name, kwargs={'playlist_id': not_own_playlist.pk})
 
         response = self.client.patch(
-            url,
+            not_own_playlist_url,
             {
                 'name': faker.pystr()
             },
@@ -110,14 +127,20 @@ class TestEditPlaylist(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'You are not a owner of this playlist'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_to_return_error_response_and_status_code_400_if_the_playlist_name_exceeds_150_characters(self):
+    def test_data_sent_is_invalid(self):
+        """
+        Should return an error response and a 400 status code if the data sent is invalid
+        """
         response = self.client.patch(
             self.url,
             {
-                'name': faker.pystr(min_chars=151, max_chars=152)
+                'name': faker.pystr(min_chars=151, max_chars=152),
+                'visibility': faker.pystr()
             },
             format='json'
         )
 
-        self.assertIsNotNone(response.data.get('errors').get('name'))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertIn('name', response.data.get('errors'))
+        self.assertIn('visibility', response.data.get('errors'))
