@@ -39,7 +39,7 @@ class SaveVideoToPlaylistView(APIView):
             playlist = Playlist.objects.get(id=playlist_id)
         except Playlist.DoesNotExist:
             return Response({
-                'message': 'The playlist does not exists'
+                'message': 'The playlist does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if playlist.channel != request.user.current_channel:
@@ -58,7 +58,7 @@ class SaveVideoToPlaylistView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if PlaylistVideo.objects.filter(playlist=playlist, video=video).exists():
@@ -84,7 +84,7 @@ class EditPlaylistView(APIView):
             playlist = Playlist.objects.get(id=playlist_id)
         except Playlist.DoesNotExist:
             return Response({
-                'message': 'The playlist does not exists'
+                'message': 'The playlist does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         playlist_updated = UpdatePlaylistSerializer(playlist, data=request.data, partial=True)
@@ -137,7 +137,7 @@ class RemoveVideoFromPlaylistView(APIView):
             playlist_video: PlaylistVideo = PlaylistVideo.objects.select_related('playlist__channel').get(id=playlist_video_id)
         except PlaylistVideo.DoesNotExist:
             return Response({
-                'message': 'The playlist video does not exists'
+                'message': 'The playlist video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if playlist_video.playlist.channel != request.user.current_channel:
