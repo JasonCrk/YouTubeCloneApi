@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
 
-from apps.playlist.serializers import CreatePlaylistSerializer, UpdatePlaylistSerializer
+from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, UpdatePlaylistSerializer
 
 
 class CreatePlaylistView(APIView):
@@ -17,18 +17,18 @@ class CreatePlaylistView(APIView):
 
         data['channel'] = request.user.current_channel.pk
 
-        playlist_created = CreatePlaylistSerializer(data=data)
+        new_playlist = CreatePlaylistSerializer(data=data)
 
-        if not playlist_created.is_valid():
+        if not new_playlist.is_valid():
             return Response({
-                'errors': playlist_created.errors
+                'errors': new_playlist.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        playlist_created.save()
+        new_playlist_instance = new_playlist.save()
 
-        return Response({
-            'message': f'Added to {playlist_created.validated_data["name"]}'
-        }, status=status.HTTP_201_CREATED)
+        serialized_playlist = PlaylistListSerializer(new_playlist_instance)
+
+        return Response(serialized_playlist.data, status=status.HTTP_201_CREATED)
 
 
 class SaveVideoToPlaylistView(APIView):
