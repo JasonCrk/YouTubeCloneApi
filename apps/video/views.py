@@ -212,11 +212,6 @@ class EditVideoView(APIView):
     def patch(self, request, video_id, format=None):
         data = request.data.dict()
 
-        if len(data.keys()) == 0:
-            return Response({
-                'message': 'A minimum of 1 value is required to update the video'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         try:
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
