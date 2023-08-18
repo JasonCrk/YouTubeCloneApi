@@ -97,8 +97,8 @@ class CreateVideoSerializer(serializers.ModelSerializer):
 
 
 class UpdateVideoSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.ImageField(required=False)
-    title = serializers.CharField(max_length=45, required=False)
+    thumbnail = serializers.ImageField()
+    title = serializers.CharField(max_length=45)
 
     class Meta:
         model = Video
