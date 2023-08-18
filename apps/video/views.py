@@ -18,14 +18,14 @@ from youtube_clone.utils.storage import upload_video, upload_image
 from youtube_clone.enums import SortByEnum, UploadDateEnum
 
 
-class GetVideoDetailsView(generics.RetrieveAPIView):
+class RetrieveVideoDetailsView(generics.RetrieveAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoDetailsSerializer
 
     def handle_exception(self, exc):
         if isinstance(exc, Http404):
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         return super().handle_exception(exc)
@@ -44,6 +44,7 @@ class SearchVideosView(APIView):
 
         filtered_videos = Video.objects.filter(Q(title=search_query) | Q(title__icontains=search_query))
 
+        # ESTO PODRÍA MEJORARLO
         if upload_date == UploadDateEnum.LAST_HOUR:
             filtered_videos = filtered_videos.filter(timestamp__hour=datetime.datetime.today().hour)
         elif upload_date == UploadDateEnum.TODAY:
@@ -55,6 +56,7 @@ class SearchVideosView(APIView):
         elif upload_date == UploadDateEnum.THIS_YEAR:
             filtered_videos = filtered_videos.filter(publication_date__year=datetime.datetime.today().year)
 
+        # ESTO PODRÍA MEJORARLO
         if sort_by == SortByEnum.UPLOAD_DATE.value:
             filtered_videos = filtered_videos.order_by('publication_date')
         elif sort_by == SortByEnum.VIEW_COUNT.value:
@@ -81,13 +83,9 @@ class CreateVideoView(APIView):
     def post(self, request, format=None):
         video_data = request.data.dict()
 
-        new_video = CreateVideoSerializer(data={
-            'video': video_data.get('video'),
-            'thumbnail': video_data.get('thumbnail'),
-            'title': video_data.get('title'),
-            'description': video_data.get('description'),
-            'channel': request.user.current_channel.pk
-        })
+        video_data['channel'] = request.user.current_channel.pk
+
+        new_video = CreateVideoSerializer(data=video_data)
 
         if not new_video.is_valid():
             return Response({
@@ -111,7 +109,7 @@ class CreateVideoView(APIView):
         new_video.save()
 
         return Response({
-            'message': 'The video has been uploaded successfully'
+            'message': 'The video has been uploaded'
         }, status=status.HTTP_201_CREATED)
 
 
@@ -130,7 +128,7 @@ class LikeVideoView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         try:
@@ -175,7 +173,7 @@ class DislikeVideoView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         try:
@@ -216,7 +214,7 @@ class EditVideoView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if video.channel != request.user.current_channel:
@@ -231,7 +229,7 @@ class EditVideoView(APIView):
                 'errors': updated_video.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if data.get('thumbnail') != None:
+        if data.get('thumbnail') is not None:
             try:
                 thumbnail_image_url = upload_image(data['thumbnail'], 'thumbnails')
                 updated_video.validated_data['thumbnail'] = thumbnail_image_url
@@ -255,7 +253,7 @@ class DeleteVideoView(APIView):
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
             return Response({
-                'message': 'The video does not exists'
+                'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
         if video.channel != request.user.current_channel:
