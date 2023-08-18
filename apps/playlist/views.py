@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -70,6 +72,9 @@ class SaveVideoToPlaylistView(APIView):
             video=video,
             playlist=playlist
         ).save()
+
+        playlist.updated_at = timezone.now()
+        playlist.save()
 
         return Response({
             'message': f'Added to {playlist.name}'
