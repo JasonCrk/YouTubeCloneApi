@@ -59,7 +59,7 @@ class TestSaveVideoToPlaylist(APITestCaseWithAuth):
 
         self.assertTrue(playlist_video.exists())
 
-    def test_to_return_error_response_and_status_code_401_if_a_channel_wants_to_save_a_video_to_the_playlist_that_he_does_not_own(self):
+    def test_another_channel_wants_to_save_a_video_to_the_playlist_that_he_does_not_own(self):
         """
         Should return an error response if and a 401 status code
         if another channel wants to save a video to the playlist is does not own
