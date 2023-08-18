@@ -59,6 +59,22 @@ class TestSaveVideoToPlaylist(APITestCaseWithAuth):
 
         self.assertTrue(playlist_video.exists())
 
+    def test_playlist_updates_its_updated_at(self):
+        """
+        Should verify if the playlist updates its updated_at field
+        """
+        self.client.post(
+            self.url,
+            {
+                'video_id': self.video.pk
+            },
+            format='json'
+        )
+
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
+
+        self.assertNotEqual(self.playlist.updated_at, playlist_updated.updated_at)
+
     def test_another_channel_wants_to_save_a_video_to_the_playlist_that_he_does_not_own(self):
         """
         Should return an error response if and a 401 status code
@@ -73,7 +89,7 @@ class TestSaveVideoToPlaylist(APITestCaseWithAuth):
             {
                 'video_id': self.video.pk
             },
-            format=None
+            format='json'
         )
 
         self.assertDictEqual(response.data, {'message': 'You are not a owner of this playlist'})
@@ -129,7 +145,7 @@ class TestSaveVideoToPlaylist(APITestCaseWithAuth):
             {
                 'video_id': self.video.pk
             },
-            format=None
+            format='json'
         )
 
         self.assertDictEqual(response.data, {'message': 'The video is already in the playlist'})
