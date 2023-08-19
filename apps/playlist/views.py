@@ -11,6 +11,19 @@ from apps.video.models import Video
 from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, UpdatePlaylistSerializer
 
 
+class RetrieveOwnPlaylistsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        own_playlists = Playlist.objects.filter(channel=request.user.current_channel)
+
+        serialized_own_playlists = PlaylistListSerializer(own_playlists, many=True)
+
+        return Response({
+            'data': serialized_own_playlists.data
+        }, status=status.HTTP_200_OK)
+
+
 class CreatePlaylistView(APIView):
     permission_classes = [IsAuthenticated]
 
