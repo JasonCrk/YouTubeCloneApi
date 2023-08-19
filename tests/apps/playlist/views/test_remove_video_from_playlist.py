@@ -41,6 +41,16 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
 
         self.assertFalse(playlist_video_removed.exists())
 
+    def test_playlist_updates_its_updated_at(self):
+        """
+        Should verify if the playlist updates its updated_at field
+        """
+        self.client.delete(self.url)
+
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
+
+        self.assertNotEqual(self.playlist.updated_at, playlist_updated.updated_at)
+
     def test_playlist_video_does_not_exist(self):
         """
         Should return an error response and a 404 status code
