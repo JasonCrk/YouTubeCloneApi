@@ -4,6 +4,11 @@ from apps.playlist import views
 
 urlpatterns = [
     path(
+        'own/',
+        views.RetrieveOwnPlaylistsView.as_view(),
+        name='own_playlists'
+    ),
+    path(
         'create/',
         views.CreatePlaylistView.as_view(),
         name='create_playlist'
