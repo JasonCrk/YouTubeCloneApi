@@ -21,3 +21,14 @@ class TestPlaylistModel(TestCase):
         """
         playlist = Playlist.objects.filter(id=self.playlist.pk)
         self.assertTrue(playlist.exists())
+
+    def test_ordering_to_updated_at(self):
+        """
+        Should verify if retrieve playlists are sorted by updated_at
+        """
+        second_playlist = PlaylistFactory.create()
+
+        playlists_ids = Playlist.objects.values_list('id', flat=True)
+
+        self.assertEqual(playlists_ids[0], second_playlist.pk)
+        self.assertEqual(playlists_ids[1], self.playlist.pk)
