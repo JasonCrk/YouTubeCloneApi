@@ -139,7 +139,9 @@ class RemoveVideoFromPlaylistView(APIView):
 
     def delete(self, request, playlist_video_id, format=None):
         try:
-            playlist_video: PlaylistVideo = PlaylistVideo.objects.select_related('playlist__channel').get(id=playlist_video_id)
+            playlist_video: PlaylistVideo = PlaylistVideo.objects\
+                .select_related('playlist__channel')\
+                .get(id=playlist_video_id)
         except PlaylistVideo.DoesNotExist:
             return Response({
                 'message': 'The playlist video does not exist'
@@ -151,6 +153,9 @@ class RemoveVideoFromPlaylistView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         playlist_video.delete()
+
+        playlist_video.playlist.updated_at = timezone.now()
+        playlist_video.playlist.save()
 
         return Response({
             'message': f'Removed from {playlist_video.playlist.name}'
