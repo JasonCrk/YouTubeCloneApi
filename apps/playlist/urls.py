@@ -14,6 +14,11 @@ urlpatterns = [
         name='create_playlist'
     ),
     path(
+        'channel/<int:channel_id>',
+        views.RetrieveChannelPlaylistsView.as_view(),
+        name='channel_playlists'
+    ),
+    path(
         '<int:playlist_id>/save-video/',
         views.SaveVideoToPlaylistView.as_view(),
         name='save_video_to_playlist'
