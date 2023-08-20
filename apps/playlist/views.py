@@ -7,8 +7,32 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
+from apps.channel.models import Channel
 
 from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, UpdatePlaylistSerializer
+
+from apps.playlist.choices import Visibility
+
+
+class RetrieveChannelPlaylistsView(APIView):
+    def get(self, request, channel_id, format=None):
+        try:
+            channel = Channel.objects.get(id=channel_id)
+        except Channel.DoesNotExist:
+            return Response({
+                'message': 'The channel does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        channel_playlists = Playlist.objects.filter(
+            channel=channel,
+            visibility=Visibility.PUBLIC
+        )
+
+        serialized_channel_playlists = PlaylistListSerializer(channel_playlists, many=True)
+
+        return Response({
+            'data': serialized_channel_playlists.data
+        }, status=status.HTTP_200_OK)
 
 
 class RetrieveOwnPlaylistsView(APIView):
