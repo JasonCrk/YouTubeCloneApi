@@ -20,6 +20,9 @@ class TestRetrieveOwnPlaylists(APITestCaseWithAuth):
         self.url = reverse('own_playlists')
 
     def test_return_own_playlists(self):
+        """
+        Should verify if it returns the channel's own playlists
+        """
         PlaylistFactory.create_batch(2)
 
         response = self.client.get(self.url)
@@ -30,6 +33,9 @@ class TestRetrieveOwnPlaylists(APITestCaseWithAuth):
         self.assertIn(self.own_playlist.pk, retrieve_playlists)
 
     def test_return_serialized_own_playlists(self):
+        """
+        Should verify if it returns the serialized playlists
+        """
         serialized_own_playlist = PlaylistListSerializer(self.own_playlist)
 
         response = self.client.get(self.url)
