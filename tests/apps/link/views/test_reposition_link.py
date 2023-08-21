@@ -79,8 +79,7 @@ class TestRepositionLink(APITestCaseWithAuth):
 
     def test_arranged_after_changing_the_first_link_changes_position_with_the_fourth_link_position(self):
         """
-        Should verify if the links arranged after changing the first link
-        changes position with the fourth link position
+        Should verify if the links arranged after changing the first link changes position with the fourth link position
         """
         third_link: Link = LinkFactory.create(channel=self.user.current_channel)
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)

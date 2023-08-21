@@ -50,8 +50,7 @@ class TestDeleteVideo(APITestCaseWithAuth):
 
     def test_another_channel_wants_to_delete_a_video_is_not_their_own(self):
         """
-        Should return an error response and a 401 status code
-        if another channel wants to delete a video is not their own
+        Should return an error response and a 401 status code if another channel wants to delete a video is not their own
         """
         not_own_video: Video = VideoFactory.create()
 

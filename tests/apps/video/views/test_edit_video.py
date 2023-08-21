@@ -92,8 +92,7 @@ class TestEditVideo(APITestCaseWithAuth):
 
     def test_video_does_not_exist(self):
         """
-        Should return an error response and a 400 status code
-        if the video does not exist
+        Should return an error response and a 400 status code if the video does not exist
         """
         self.video.delete()
 
@@ -110,8 +109,7 @@ class TestEditVideo(APITestCaseWithAuth):
 
     def test_another_channel_wants_to_edit_a_video_is_does_not_own(self):
         """
-        Should return an error response and a 401 status code
-        if another channel wants to edit a video is does not own
+        Should return an error response and a 401 status code if another channel wants to edit a video is does not own
         """
         not_own_video: Video = VideoFactory.create()
 
