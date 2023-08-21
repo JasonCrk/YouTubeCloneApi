@@ -95,6 +95,9 @@ class TestLikeComment(APITestCaseWithAuth):
         self.assertFalse(like_comment.exists())
 
     def test_dislike_comment_to_like_comment(self):
+        """
+        Should
+        """
         DislikeCommentFactory.create(
             channel=self.user.current_channel,
             comment=self.comment
