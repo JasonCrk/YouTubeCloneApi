@@ -1,6 +1,20 @@
 from rest_framework import serializers
 
-from apps.playlist.models import Playlist
+from apps.playlist.models import Playlist, PlaylistVideo
+
+from apps.video.serializers import VideoListSimpleSerializer
+
+
+class PlaylistVideoListSerializer(serializers.ModelSerializer):
+    video = VideoListSimpleSerializer(read_only=True)
+
+    class Meta:
+        model = PlaylistVideo
+        fields = (
+            'id',
+            'position',
+            'video'
+        )
 
 
 class PlaylistListSerializer(serializers.ModelSerializer):
