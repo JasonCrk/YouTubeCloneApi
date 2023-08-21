@@ -6,6 +6,31 @@ from apps.comment.models import Comment
 from apps.channel.serializers import ChannelSimpleRepresentationSerializer, ChannelListSerializer
 
 
+class VideoListSimpleSerializer(serializers.ModelSerializer):
+    channel = ChannelSimpleRepresentationSerializer(read_only=True)
+
+    class Meta:
+        model = Video
+        fields = (
+            'id',
+            'title',
+            'thumbnail',
+            'channel',
+            'publication_date',
+            'views',
+        )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+
+        video_view_list = VideoView.objects.filter(video=instance).values_list('count', flat=True)
+        total_video_views = sum(video_view_list)
+
+        representation['views'] = total_video_views
+
+        return representation
+
+
 class VideoListSerializer(serializers.ModelSerializer):
     channel = ChannelSimpleRepresentationSerializer(read_only=True)
 

@@ -3,15 +3,44 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
 from apps.channel.models import Channel
 
-from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, UpdatePlaylistSerializer
+from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, PlaylistVideoListSerializer, UpdatePlaylistSerializer
 
 from apps.playlist.choices import Visibility
+
+
+class RetrieveVideosFromAPlaylist(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, playlist_id, format=None):
+        try:
+            playlist = Playlist.objects.get(id=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        error_message = 'You are not authorized to view this playlist'
+        error_status = status.HTTP_401_UNAUTHORIZED
+
+        if playlist.visibility == Visibility.PRIVATE:
+            if not request.user.is_authenticated or playlist.channel != request.user.current_channel:
+                return Response({
+                    'message': error_message
+                }, status=error_status)
+
+        playlist_videos = PlaylistVideo.objects.filter(playlist=playlist)
+
+        serialized_playlist_videos = PlaylistVideoListSerializer(playlist_videos, many=True)
+
+        return Response({
+            'data': serialized_playlist_videos.data
+        }, status=status.HTTP_200_OK)
 
 
 class RetrieveChannelPlaylistsView(APIView):
