@@ -25,14 +25,11 @@ class RetrieveVideosFromAPlaylist(APIView):
                 'message': 'The playlist does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        error_message = 'You are not authorized to view this playlist'
-        error_status = status.HTTP_401_UNAUTHORIZED
-
         if playlist.visibility == Visibility.PRIVATE:
             if not request.user.is_authenticated or playlist.channel != request.user.current_channel:
                 return Response({
-                    'message': error_message
-                }, status=error_status)
+                    'message': 'You are not authorized to view this playlist'
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
         playlist_videos = PlaylistVideo.objects.filter(playlist=playlist)
 
