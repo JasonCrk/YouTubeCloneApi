@@ -1,7 +1,7 @@
 from django.urls import reverse
-from django.test import TestCase
 
 from rest_framework import status
+from rest_framework.test import APITestCase
 
 from tests.factories.playlist import PlaylistFactory
 from tests.factories.channel import ChannelFactory
@@ -14,7 +14,7 @@ from apps.playlist.serializers import PlaylistListSerializer
 from apps.playlist.choices import Visibility
 
 
-class TestRetrieveChannelPlaylists(TestCase):
+class TestRetrieveChannelPlaylists(APITestCase):
     def setUp(self):
         self.channel: Channel = ChannelFactory.create()
         self.url = reverse('channel_playlists', kwargs={'channel_id': self.channel.pk})
