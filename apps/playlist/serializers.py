@@ -5,6 +5,19 @@ from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.serializers import VideoListSimpleSerializer
 
 
+class PlaylistDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = (
+            'id',
+            'name',
+            'description',
+            'visibility',
+            'created_at',
+            'updated_at'
+        )
+
+
 class PlaylistVideoListSerializer(serializers.ModelSerializer):
     video = VideoListSimpleSerializer(read_only=True)
 

@@ -53,8 +53,7 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
 
     def test_playlist_video_does_not_exist(self):
         """
-        Should return an error response and a 404 status code
-        if the playlist video does not exist
+        Should return an error response and a 404 status code if the playlist video does not exist
         """
         self.playlist_video.delete()
 
@@ -65,8 +64,7 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
 
     def test_another_channel_wants_to_remove_a_video_from_a_playlist_it_does_not_own(self):
         """
-        Should return an error response and a 401 status code
-        if the another channel wants to remove a video from playlist it does not own
+        Should return an error response and a 401 status code if the another channel wants to remove a video from playlist it does not own
         """
         not_own_playlist_video: PlaylistVideo = PlaylistVideoFactory.create()
 

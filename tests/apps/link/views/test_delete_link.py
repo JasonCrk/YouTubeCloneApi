@@ -56,8 +56,7 @@ class TestDeleteLink(APITestCaseWithAuth):
 
     def test_channel_wants_to_delete_a_link_that_is_not_their_own(self):
         """
-        Should return an error response and a 401 status code
-        if a channel wants to delete a link that is not their own
+        Should return an error response and a 401 status code if a channel wants to delete a link that is not their own
         """
         not_own_link = LinkFactory.create()
 

@@ -96,6 +96,9 @@ class TestDislikeComment(APITestCaseWithAuth):
         self.assertFalse(dislike_comment.exists())
 
     def test_like_comment_to_dislike_comment(self):
+        """
+        Should verify that if the comment has our like it will convert it to a dislike
+        """
         LikeCommentFactory.create(
             channel=self.user.current_channel,
             comment=self.comment

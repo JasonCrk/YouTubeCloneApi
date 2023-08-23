@@ -9,12 +9,32 @@ from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
 from apps.channel.models import Channel
 
-from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, PlaylistVideoListSerializer, UpdatePlaylistSerializer
+from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistDetailsSerializer, PlaylistListSerializer, PlaylistVideoListSerializer, UpdatePlaylistSerializer
 
 from apps.playlist.choices import Visibility
 
 
-class RetrieveVideosFromAPlaylist(APIView):
+class RetrievePlaylistDetailsView(APIView):
+    def get(self, request, playlist_id, format=None):
+        try:
+            playlist = Playlist.objects.get(id=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if playlist.visibility == Visibility.PRIVATE:
+            if not request.user.is_authenticated or playlist.channel != request.user.current_channel:
+                return Response({
+                    'message': 'You are not authorized to view this playlist'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+        serialized_playlist = PlaylistDetailsSerializer(playlist)
+
+        return Response(serialized_playlist.data, status=status.HTTP_200_OK)
+
+
+class RetrieveVideosFromAPlaylistView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, playlist_id, format=None):
@@ -25,14 +45,11 @@ class RetrieveVideosFromAPlaylist(APIView):
                 'message': 'The playlist does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        error_message = 'You are not authorized to view this playlist'
-        error_status = status.HTTP_401_UNAUTHORIZED
-
         if playlist.visibility == Visibility.PRIVATE:
             if not request.user.is_authenticated or playlist.channel != request.user.current_channel:
                 return Response({
-                    'message': error_message
-                }, status=error_status)
+                    'message': 'You are not authorized to view this playlist'
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
         playlist_videos = PlaylistVideo.objects.filter(playlist=playlist)
 

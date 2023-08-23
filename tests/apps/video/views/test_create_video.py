@@ -20,8 +20,8 @@ class TestCreateVideo(APITestCaseWithAuth):
 
         self.url = reverse('upload_video')
 
-        test_video_path = os.path.dirname(__file__) + '/resources/test_video.mp4'
-        with open(test_video_path, 'rb') as file:
+        video_path = os.path.dirname(__file__) + '/resources/test_video.mp4'
+        with open(video_path, 'rb') as file:
             video_content = file.read()
 
         self.video = SimpleUploadedFile('video.mp4', video_content, content_type='video/mp4')

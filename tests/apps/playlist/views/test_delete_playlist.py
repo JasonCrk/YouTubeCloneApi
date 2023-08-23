@@ -20,8 +20,7 @@ class TestDeletePlaylist(APITestCaseWithAuth):
 
     def test_success_response(self):
         """
-        Should return an success message and 200 status code
-        if the playlist has been deleted successfully
+        Should return an success message and 200 status code if the playlist has been deleted successfully
         """
         response = self.client.delete(self.url)
 
@@ -51,8 +50,7 @@ class TestDeletePlaylist(APITestCaseWithAuth):
 
     def test_channel_wants_to_delete_a_playlist_it_does_not_own(self):
         """
-        Should return an error message and 401 status code
-        if a channels wants to delete a playlist it does not own
+        Should return an error message and 401 status code if a channels wants to delete a playlist it does not own
         """
         not_own_playlist: Playlist = PlaylistFactory.create()
 

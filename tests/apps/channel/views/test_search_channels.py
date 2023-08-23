@@ -46,8 +46,7 @@ class TestSearchChannels(APITestCase):
 
     def test_list_of_channels(self):
         """
-        Should return a list of channel that are equal to
-        or contain the value of SEARCH_QUERY
+        Should return a list of channel that are equal to or contain the value of SEARCH_QUERY
         """
         response = self.client.get(self.url, {'search_query': self.SEARCH_QUERY})
 
