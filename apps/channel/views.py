@@ -10,7 +10,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import VideoView
 
-from apps.channel.serializers import ChannelDetailsSerializer, CreateChannelSerializer, UpdateChannelSerializer, ChannelListSerializer, ChannelSimpleRepresentationSerializer
+from apps.channel import serializers
 
 from youtube_clone.utils.storage import upload_image
 from youtube_clone.enums import SortByEnum
@@ -18,7 +18,7 @@ from youtube_clone.enums import SortByEnum
 
 class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
     queryset = Channel.objects.all()
-    serializer_class = ChannelDetailsSerializer
+    serializer_class = serializers.ChannelDetailsSerializer
 
     def handle_exception(self, exc):
         if isinstance(exc, Http404):
@@ -38,7 +38,7 @@ class RetrieveChannelDetailsByHandleView(APIView):
                 'message': 'The channel does not exists'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        serialized_channel = ChannelDetailsSerializer(channel)
+        serialized_channel = serializers.ChannelDetailsSerializer(channel)
 
         return Response(serialized_channel.data, status=status.HTTP_200_OK)
 
@@ -53,7 +53,10 @@ class RetrieveSubscribedChannelsView(APIView):
 
         channels_subscribed = Channel.objects.filter(id__in=ids_channels_subscribed)
 
-        serialized_channels_subscribed = ChannelSimpleRepresentationSerializer(channels_subscribed, many=True)
+        serialized_channels_subscribed = serializers.ChannelSimpleRepresentationSerializer(
+            channels_subscribed,
+            many=True
+        )
 
         return Response({
             'data': serialized_channels_subscribed.data
@@ -97,7 +100,10 @@ class SearchChannelsView(APIView):
                 total_subscribers=Count(total_channel_subscribers)
             ).order_by('-total_subscribers')
 
-        serialized_channels = ChannelListSerializer(filtered_channels, many=True)
+        serialized_channels = serializers.ChannelListSerializer(
+            filtered_channels,
+            many=True
+        )
 
         return Response({
             'data': serialized_channels.data
@@ -110,7 +116,7 @@ class CreateChannelView(APIView):
     def post(self, request, format=None):
         channel_data = request.data
 
-        new_channel = CreateChannelSerializer(data={
+        new_channel = serializers.CreateChannelSerializer(data={
             'name': channel_data['name'],
             'user': request.user.pk
         })
@@ -213,7 +219,7 @@ class EditChannelView(APIView):
     def patch(self, request, format=None):
         channel_data = request.data.dict()
 
-        updated_channel = UpdateChannelSerializer(
+        updated_channel = serializers.UpdateChannelSerializer(
             request.user.current_channel,
             data=channel_data,
             partial=True

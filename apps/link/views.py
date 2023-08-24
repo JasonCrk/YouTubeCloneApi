@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.link.models import Link
 from apps.channel.models import Channel
 
-from apps.link.serializers import LinkListSerializer, CreateLinkSerializer, UpdateLinkSerializer
+from apps.link import serializers
 
 
 class RetrieveChannelLinksView(APIView):
@@ -22,7 +22,7 @@ class RetrieveChannelLinksView(APIView):
 
         channel_links = Link.objects.filter(channel=channel).order_by('position')
 
-        serialized_channel_links = LinkListSerializer(channel_links, many=True)
+        serialized_channel_links = serializers.LinkListSerializer(channel_links, many=True)
 
         return Response({
             'data': serialized_channel_links.data
@@ -33,7 +33,7 @@ class CreateLinkView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
-        new_link = CreateLinkSerializer(data={
+        new_link = serializers.CreateLinkSerializer(data={
             'title': request.data.get('title'),
             'url': request.data.get('url'),
             'channel': request.user.current_channel.pk
@@ -132,7 +132,7 @@ class EditLinkView(APIView):
                 'message': 'The link does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        link_updated = UpdateLinkSerializer(link, data=request.data)
+        link_updated = serializers.UpdateLinkSerializer(link, data=request.data)
 
         if not link_updated.is_valid():
             return Response({

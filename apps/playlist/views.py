@@ -9,7 +9,7 @@ from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
 from apps.channel.models import Channel
 
-from apps.playlist.serializers import CreatePlaylistSerializer, PlaylistListSerializer, PlaylistVideoListSerializer, UpdatePlaylistSerializer
+from apps.playlist import serializers
 
 from apps.playlist.choices import Visibility
 
@@ -33,7 +33,10 @@ class RetrieveVideosFromAPlaylist(APIView):
 
         playlist_videos = PlaylistVideo.objects.filter(playlist=playlist)
 
-        serialized_playlist_videos = PlaylistVideoListSerializer(playlist_videos, many=True)
+        serialized_playlist_videos = serializers.PlaylistVideoListSerializer(
+            playlist_videos,
+            many=True
+        )
 
         return Response({
             'data': serialized_playlist_videos.data
@@ -54,7 +57,10 @@ class RetrieveChannelPlaylistsView(APIView):
             visibility=Visibility.PUBLIC
         )
 
-        serialized_channel_playlists = PlaylistListSerializer(channel_playlists, many=True)
+        serialized_channel_playlists = serializers.PlaylistListSerializer(
+            channel_playlists,
+            many=True
+        )
 
         return Response({
             'data': serialized_channel_playlists.data
@@ -67,7 +73,10 @@ class RetrieveOwnPlaylistsView(APIView):
     def get(self, request, format=None):
         own_playlists = Playlist.objects.filter(channel=request.user.current_channel)
 
-        serialized_own_playlists = PlaylistListSerializer(own_playlists, many=True)
+        serialized_own_playlists = serializers.PlaylistListSerializer(
+            own_playlists,
+            many=True
+        )
 
         return Response({
             'data': serialized_own_playlists.data
@@ -82,7 +91,7 @@ class CreatePlaylistView(APIView):
 
         data['channel'] = request.user.current_channel.pk
 
-        new_playlist = CreatePlaylistSerializer(data=data)
+        new_playlist = serializers.CreatePlaylistSerializer(data=data)
 
         if not new_playlist.is_valid():
             return Response({
@@ -91,7 +100,9 @@ class CreatePlaylistView(APIView):
 
         new_playlist_instance = new_playlist.save()
 
-        serialized_playlist = PlaylistListSerializer(new_playlist_instance)
+        serialized_playlist = serializers.PlaylistListSerializer(
+            new_playlist_instance
+        )
 
         return Response(serialized_playlist.data, status=status.HTTP_201_CREATED)
 
@@ -155,7 +166,11 @@ class EditPlaylistView(APIView):
                 'message': 'The playlist does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        playlist_updated = UpdatePlaylistSerializer(playlist, data=request.data, partial=True)
+        playlist_updated = serializers.UpdatePlaylistSerializer(
+            playlist,
+            data=request.data,
+            partial=True
+        )
 
         if not playlist_updated.is_valid():
             return Response({

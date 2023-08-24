@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
 
-from apps.comment.serializers import ListCommentSerializer, CreateCommentSerializer, UpdateCommentSerializer
+from apps.comment import serializers
 
 
 class RetrieveVideoCommentsView(APIView):
@@ -20,7 +20,7 @@ class RetrieveVideoCommentsView(APIView):
 
         video_comments = Comment.objects.filter(video=video, comment__isnull=True)
 
-        serialized_video_comments = ListCommentSerializer(video_comments, many=True)
+        serialized_video_comments = serializers.ListCommentSerializer(video_comments, many=True)
 
         return Response({
             'data': serialized_video_comments.data
@@ -38,7 +38,7 @@ class RetrieveCommentsOfCommentView(APIView):
 
         comments_of_comment = Comment.objects.filter(comment=comment)
 
-        serialized_comments_of_comment = ListCommentSerializer(comments_of_comment, many=True)
+        serialized_comments_of_comment = serializers.ListCommentSerializer(comments_of_comment, many=True)
 
         return Response({
             'data': serialized_comments_of_comment.data
@@ -56,7 +56,7 @@ class CreateVideoCommentView(APIView):
                 'message': 'the video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        new_comment = CreateCommentSerializer(data={
+        new_comment = serializers.CreateCommentSerializer(data={
             'channel': request.user.current_channel.pk,
             'video': video.pk,
             'content': request.data.get('content')
@@ -90,7 +90,7 @@ class CreateCommentForCommentView(APIView):
         data['comment'] = comment_parent.pk
         data['video'] = comment_parent.video.pk
 
-        new_comment = CreateCommentSerializer(data=data)
+        new_comment = serializers.CreateCommentSerializer(data=data)
 
         if not new_comment.is_valid():
             return Response({
@@ -205,7 +205,7 @@ class EditCommentView(APIView):
                 'message': 'The comment does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        comment_updated = UpdateCommentSerializer(
+        comment_updated = serializers.UpdateCommentSerializer(
             comment,
             data={'content': request.data['content']},
             partial=True
