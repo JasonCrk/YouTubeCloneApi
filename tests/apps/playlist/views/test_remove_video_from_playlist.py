@@ -16,6 +16,9 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
         self.playlist: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
         self.playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist)
 
+        self.playlist.video_thumbnail = self.playlist_video
+        self.playlist.save()
+
         self.url_name = 'remove_video_from_playlist'
         self.url = reverse(
             self.url_name,

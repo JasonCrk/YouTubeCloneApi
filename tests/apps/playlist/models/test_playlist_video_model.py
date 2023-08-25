@@ -1,13 +1,16 @@
 from django.test import TestCase
 
-from tests.factories.playlist import PlaylistVideoFactory
+from tests.factories.playlist import PlaylistFactory, PlaylistVideoFactory
 
-from apps.playlist.models import PlaylistVideo
+from apps.playlist.models import Playlist, PlaylistVideo
 
 
 class TestPlaylistVideoModel(TestCase):
     def setUp(self):
-        self.playlist_video: PlaylistVideo = PlaylistVideoFactory.create()
+        self.playlist: Playlist = PlaylistFactory.create()
+        self.playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist)
+        self.playlist.video_thumbnail = self.playlist_video
+        self.playlist.save()
 
     def test_str_of_the_playlist_video_model_is_the_video_name(self):
         """
@@ -33,13 +36,29 @@ class TestPlaylistVideoModel(TestCase):
         """
         Should verify that the playlist videos are organized when a playlist video is deleted
         """
-        playlist = self.playlist_video.playlist
-
-        PlaylistVideoFactory.create_batch(2, playlist=playlist)
+        PlaylistVideoFactory.create_batch(2, playlist=self.playlist)
 
         self.playlist_video.delete()
 
-        playlist_videos = PlaylistVideo.objects.filter(playlist=playlist)
+        playlist_videos = PlaylistVideo.objects.filter(playlist=self.playlist)
 
         for new_position, playlist_video in enumerate(playlist_videos):
             self.assertEqual(playlist_video.position, new_position)
+
+    def test_video_thumbnail_of_the_playlist_has_been_updated_to_null(self):
+        """
+        Should verify if the video_thumbnail of the playlist has been updated to null before deleting last video from the playlist
+        """
+        self.playlist_video.delete()
+
+        self.assertIsNone(self.playlist.video_thumbnail)
+
+    def test_video_thumbnail_of_the_playlist_has_been_updated_to_first_playlist_video(self):
+        """
+        Should verify if the video_thumbnail of the playlist has been updated to first playlist video before deleting a playlist video
+        """
+        second_playlist_video = PlaylistVideoFactory.create(playlist=self.playlist)
+
+        self.playlist_video.delete()
+
+        self.assertEqual(self.playlist.video_thumbnail, second_playlist_video)

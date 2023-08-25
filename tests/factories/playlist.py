@@ -11,7 +11,6 @@ class PlaylistFactory(factory.django.DjangoModelFactory):
         model = Playlist
 
     channel = factory.SubFactory(ChannelFactory)
-    thumbnail = factory.Faker('image_url')
     name = factory.Faker('pystr')
     description = factory.Faker('paragraph')
 
