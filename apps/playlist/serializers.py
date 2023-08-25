@@ -6,11 +6,17 @@ from apps.video.serializers import VideoListSimpleSerializer
 
 
 class PlaylistDetailsSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField('selected_video_thumbnail')
+
+    def selected_video_thumbnail(self, instance: Playlist):
+        return instance.video_thumbnail.thumbnail if instance.video_thumbnail is not None else None
+
     class Meta:
         model = Playlist
         fields = (
             'id',
             'name',
+            'thumbnail',
             'description',
             'visibility',
             'created_at',
