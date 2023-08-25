@@ -10,7 +10,13 @@ from apps.playlist.choices import Visibility
 
 class Playlist(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-    thumbnail = models.URLField(null=True, blank=True)
+    video_thumbnail = models.ForeignKey(
+        "PlaylistVideo",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='video_thumbnail'
+    )
     name = models.CharField(max_length=150)
     description = models.TextField(null=True, blank=True)
     visibility = models.CharField(
@@ -61,6 +67,13 @@ class PlaylistVideo(models.Model):
         ordering = ['position']
 
     def delete(self) -> Tuple[int, Dict[str, int]]:
+        if self.playlist.video_thumbnail.pk == self.pk:
+            self.playlist.video_thumbnail = PlaylistVideo.objects.filter(
+                playlist=self.playlist
+            ).exclude(pk=self.pk).first()
+
+            self.playlist.save()
+
         PlaylistVideo.objects.filter(
             playlist=self.playlist,
             position__gt=self.position
