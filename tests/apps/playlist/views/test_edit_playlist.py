@@ -4,9 +4,9 @@ from rest_framework import status
 
 from tests.setups import APITestCaseWithAuth
 
-from tests.factories.playlist import PlaylistFactory
+from tests.factories.playlist import PlaylistFactory, PlaylistVideoFactory
 
-from apps.playlist.models import Playlist
+from apps.playlist.models import Playlist, PlaylistVideo
 from apps.playlist.choices import Visibility
 
 from faker import Faker
@@ -76,7 +76,7 @@ class TestEditPlaylist(APITestCaseWithAuth):
 
         self.assertEqual(new_playlist_description, playlist_updated.description)
 
-    def test_to_check_if_the_playlist_visibility_has_been_updated_successfully(self):
+    def test_playlist_visibility_has_been_updated(self):
         new_playlist_visibility = Visibility.PUBLIC.value
 
         self.client.patch(
@@ -90,6 +90,24 @@ class TestEditPlaylist(APITestCaseWithAuth):
         playlist_updated = Playlist.objects.get(id=self.playlist.pk)
 
         self.assertEqual(new_playlist_visibility, playlist_updated.visibility)
+
+    def test_playlist_thumbnail_has_been_updated(self):
+        self.playlist.video_thumbnail = PlaylistVideoFactory.create(playlist=self.playlist)
+        self.playlist.save()
+
+        new_playlist_video = PlaylistVideoFactory.create(playlist=self.playlist)
+
+        self.client.patch(
+            self.url,
+            {
+                'video_thumbnail': new_playlist_video.id,
+            },
+            format='json'
+        )
+
+        playlist_updated = Playlist.objects.get(id=self.playlist.pk)
+
+        self.assertEqual(new_playlist_video, playlist_updated.video_thumbnail)
 
     def test_playlist_does_not_exist(self):
         """
@@ -131,11 +149,21 @@ class TestEditPlaylist(APITestCaseWithAuth):
         """
         Should return an error response and a 400 status code if the data sent is invalid
         """
+        self.playlist.video_thumbnail = PlaylistVideoFactory.create(playlist=self.playlist)
+        self.playlist.save()
+
+        new_playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist)
+
+        non_exist_playlist_video_id = new_playlist_video.pk
+
+        new_playlist_video.delete()
+
         response = self.client.patch(
             self.url,
             {
                 'name': faker.pystr(min_chars=151, max_chars=152),
-                'visibility': faker.pystr()
+                'visibility': faker.pystr(),
+                'video_thumbnail': non_exist_playlist_video_id
             },
             format='json'
         )
@@ -144,3 +172,4 @@ class TestEditPlaylist(APITestCaseWithAuth):
 
         self.assertIn('name', response.data.get('errors'))
         self.assertIn('visibility', response.data.get('errors'))
+        self.assertIn('video_thumbnail', response.data.get('errors'))
