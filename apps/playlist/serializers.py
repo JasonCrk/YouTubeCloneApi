@@ -60,6 +60,16 @@ class UpdatePlaylistSerializer(serializers.ModelSerializer):
         model = Playlist
         fields = (
             'name',
+            'video_thumbnail',
             'description',
             'visibility',
         )
+
+    def update(self, instance, validated_data):
+        if validated_data.get('video_thumbnail') is not None:
+            if not PlaylistVideo.objects.filter(playlist=instance, pk=validated_data['video_thumbnail'].pk).exists():
+                raise serializers.ValidationError(
+                    'Video does not belong to the playlist'
+                )
+
+        return super().update(instance, validated_data)
