@@ -3,6 +3,7 @@ from django.urls import path
 from apps.video import views
 
 urlpatterns = [
+    path('channel/<int:channel_id>/', views.RetrieveChannelVideosView.as_view(), name='channel_videos'),
     path('search/', views.SearchVideosView.as_view(), name='search_videos'),
     path('create/', views.CreateVideoView.as_view(), name='upload_video'),
     path('like/', views.LikeVideoView.as_view(), name='like_video'),
