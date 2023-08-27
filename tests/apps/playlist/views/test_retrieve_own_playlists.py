@@ -8,7 +8,7 @@ from tests.factories.playlist import PlaylistFactory
 
 from apps.playlist.models import Playlist
 
-from apps.playlist.serializers import PlaylistListSerializer
+from apps.playlist.serializers import PlaylistListSimpleSerializer
 
 
 class TestRetrieveOwnPlaylists(APITestCaseWithAuth):
@@ -36,7 +36,7 @@ class TestRetrieveOwnPlaylists(APITestCaseWithAuth):
         """
         Should verify if it returns the serialized playlists
         """
-        serialized_own_playlist = PlaylistListSerializer(self.own_playlist)
+        serialized_own_playlist = PlaylistListSimpleSerializer(self.own_playlist)
 
         response = self.client.get(self.url)
 

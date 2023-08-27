@@ -10,12 +10,45 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo, VideoView
+from apps.channel.models import Channel
 
 from apps.video import serializers
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
-from youtube_clone.enums import SortByEnum, UploadDateEnum
+from youtube_clone.enums import SortByEnum, UploadDateEnum, VideoSortOptions
+
+
+class RetrieveChannelVideosView(APIView):
+    def get(self, request, channel_id, format=None):
+        try:
+            channel = Channel.objects.get(pk=channel_id)
+        except Channel.DoesNotExist:
+            return Response({
+                'message': 'The channel does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        sort_by = request.query_params.get('sort_by')
+
+        channel_videos = Video.objects.filter(channel=channel)
+
+        if sort_by == VideoSortOptions.MOST_POPULAR.value:
+            channel_videos = channel_videos.annotate(
+                total_views=Sum('videoview__count', default=0)
+            ).order_by('-total_views')
+        elif sort_by == VideoSortOptions.OLDEST_UPLOADED.value:
+            channel_videos = channel_videos.order_by('-publication_date')
+        elif sort_by == VideoSortOptions.RECENTLY_UPLOADED.value or sort_by is None:
+            channel_videos = channel_videos.order_by('publication_date')
+
+        serialized_channel_videos = serializers.VideoListSimpleSerializer(
+            channel_videos,
+            many=True
+        )
+
+        return Response({
+            'data': serialized_channel_videos.data
+        }, status=status.HTTP_200_OK)
 
 
 class RetrieveVideoDetailsView(generics.RetrieveAPIView):
