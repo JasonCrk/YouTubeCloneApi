@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from django.utils import timezone
 
 from rest_framework import status
@@ -64,6 +66,8 @@ class RetrieveVideosFromAPlaylistView(APIView):
 
 
 class RetrieveChannelPlaylistsView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(id=channel_id)
@@ -72,10 +76,21 @@ class RetrieveChannelPlaylistsView(APIView):
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        channel_playlists = Playlist.objects.filter(
-            channel=channel,
-            visibility=Visibility.PUBLIC
-        )
+        channel_playlists = Playlist.objects.filter(channel=channel)
+
+        if request.user.is_authenticated and request.user.current_channel == channel:
+            channel_playlists = channel_playlists.filter(
+                playlistvideo__isnull=False
+            ).annotate(
+                video_count=Count('playlistvideo')
+            )
+
+            channel_playlists = channel_playlists.filter(video_count__gte=1)
+        else:
+            channel_playlists = Playlist.objects.filter(
+                channel=channel,
+                visibility=Visibility.PUBLIC
+            )
 
         serialized_channel_playlists = serializers.PlaylistListSerializer(
             channel_playlists,
@@ -93,7 +108,7 @@ class RetrieveOwnPlaylistsView(APIView):
     def get(self, request, format=None):
         own_playlists = Playlist.objects.filter(channel=request.user.current_channel)
 
-        serialized_own_playlists = serializers.PlaylistListSerializer(
+        serialized_own_playlists = serializers.PlaylistListSimpleSerializer(
             own_playlists,
             many=True
         )
@@ -120,7 +135,7 @@ class CreatePlaylistView(APIView):
 
         new_playlist_instance = new_playlist.save()
 
-        serialized_playlist = serializers.PlaylistListSerializer(
+        serialized_playlist = serializers.PlaylistListSimpleSerializer(
             new_playlist_instance
         )
 

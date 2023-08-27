@@ -1,9 +1,10 @@
 from django.urls import reverse
 
 from rest_framework import status
-from rest_framework.test import APITestCase
 
-from tests.factories.playlist import PlaylistFactory
+from tests.setups import APITestCaseWithAuth
+
+from tests.factories.playlist import PlaylistFactory, PlaylistVideoFactory
 from tests.factories.channel import ChannelFactory
 
 from apps.playlist.models import Playlist
@@ -14,10 +15,12 @@ from apps.playlist.serializers import PlaylistListSerializer
 from apps.playlist.choices import Visibility
 
 
-class TestRetrieveChannelPlaylists(APITestCase):
+class TestRetrieveChannelPlaylists(APITestCaseWithAuth):
     def setUp(self):
         self.channel: Channel = ChannelFactory.create()
-        self.url = reverse('channel_playlists', kwargs={'channel_id': self.channel.pk})
+
+        self.url_name = 'channel_playlists'
+        self.url = reverse(self.url_name, kwargs={'channel_id': self.channel.pk})
 
     def test_return_channel_playlists_with_visibility_PUBLIC(self):
         """
@@ -32,10 +35,7 @@ class TestRetrieveChannelPlaylists(APITestCase):
 
         response = self.client.get(self.url)
 
-        retrieved_channel_playlists = list(map(
-            lambda playlist: dict(playlist).get('id'),
-            response.data.get('data')
-        ))
+        retrieved_channel_playlists = [dict(playlist).get('id') for playlist in response.data.get('data')]
 
         self.assertNotIn(vars(not_own_playlist).get('id'), retrieved_channel_playlists)
 
@@ -57,7 +57,7 @@ class TestRetrieveChannelPlaylists(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertDictEqual(
-            response.data.get('data')[0],
+            dict(response.data.get('data')[0]),
             serialized_channel_playlist.data
         )
 
@@ -71,3 +71,39 @@ class TestRetrieveChannelPlaylists(APITestCase):
 
         self.assertDictEqual(response.data, {'message': 'The channel does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_return_all_the_channel_playlists_that_is_authenticated(self):
+        """
+        Should return all the playlists of the channel that is authenticated
+        """
+        super().setUp()
+
+        channel_private_playlist: Playlist = PlaylistFactory.create(
+            channel=self.user.current_channel,
+            visibility=Visibility.PRIVATE
+        )
+
+        channel_private_playlist.video_thumbnail = PlaylistVideoFactory.create(playlist=channel_private_playlist)
+        channel_private_playlist.save()
+
+        channel_public_playlist: Playlist = PlaylistFactory.create(
+            channel=self.user.current_channel,
+            visibility=Visibility.PUBLIC,
+        )
+
+        channel_public_playlist.video_thumbnail = PlaylistVideoFactory.create(playlist=channel_public_playlist)
+        channel_public_playlist.save()
+
+        channel_playlist_without_video: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
+
+        url = reverse(self.url_name, kwargs={'channel_id': self.user.current_channel.pk})
+
+        response = self.client.get(url)
+
+        retrieved_channel_playlists = [dict(playlist).get('id') for playlist in response.data.get('data')]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIn(channel_private_playlist.pk, retrieved_channel_playlists)
+        self.assertIn(channel_public_playlist.pk, retrieved_channel_playlists)
+        self.assertNotIn(channel_playlist_without_video.pk, retrieved_channel_playlists)

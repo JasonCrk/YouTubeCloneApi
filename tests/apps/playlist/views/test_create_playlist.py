@@ -7,7 +7,7 @@ from tests.setups import APITestCaseWithAuth
 from apps.playlist.models import Playlist
 from apps.playlist.choices import Visibility
 
-from apps.playlist.serializers import PlaylistListSerializer
+from apps.playlist.serializers import PlaylistListSimpleSerializer
 
 from faker import Faker
 
@@ -37,7 +37,7 @@ class TestCreatePlaylist(APITestCaseWithAuth):
 
         playlist = Playlist.objects.filter(name=playlist_name).first()
 
-        serialized_playlist = PlaylistListSerializer(playlist)
+        serialized_playlist = PlaylistListSimpleSerializer(playlist)
 
         self.assertDictEqual(response.data, dict(serialized_playlist.data))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

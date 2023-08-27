@@ -37,6 +37,37 @@ class PlaylistVideoListSerializer(serializers.ModelSerializer):
 
 
 class PlaylistListSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField('selected_video_thumbnail')
+    first_video_id = serializers.SerializerMethodField('playlist_first_video_id')
+    number_videos = serializers.SerializerMethodField('playlist_number_videos')
+
+    def selected_video_thumbnail(self, instance: Playlist):
+        if instance.video_thumbnail is None:
+            return None
+
+        return instance.video_thumbnail.video.thumbnail
+
+    def playlist_first_video_id(self, instance: Playlist):
+        first_playlist_video = PlaylistVideo.objects.filter(playlist=instance).first()
+        return first_playlist_video.pk if first_playlist_video is not None else None
+
+    def playlist_number_videos(self, instance: Playlist):
+        return PlaylistVideo.objects.filter(playlist=instance).count()
+
+    class Meta:
+        model = Playlist
+        fields = (
+            'id',
+            'name',
+            'thumbnail',
+            'first_video_id',
+            'number_videos',
+            'visibility',
+            'updated_at',
+        )
+
+
+class PlaylistListSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = (
