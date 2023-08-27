@@ -13,3 +13,9 @@ class UploadDateEnum(Enum):
     THIS_WEEK = 'this_week'
     THIS_MONTH = 'this_month'
     THIS_YEAR = 'this_year'
+
+
+class VideoSortOptions(Enum):
+    MOST_POPULAR = 'most_popular'
+    RECENTLY_UPLOADED = 'recently_uploaded'
+    OLDEST_UPLOADED = 'oldest_uploaded'
