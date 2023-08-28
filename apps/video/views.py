@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.db.models import Q, Count, Sum
 from django.http import Http404
@@ -79,29 +79,27 @@ class SearchVideosView(APIView):
             Q(title=search_query) | Q(title__icontains=search_query)
         )
 
-        # ESTO PODRÍA MEJORARLO
-        if upload_date == SearchUploadDate.LAST_HOUR:
+        if upload_date == SearchUploadDate.LAST_HOUR.value:
             filtered_videos = filtered_videos.filter(
-                timestamp__hour=datetime.datetime.today().hour
+                publication_date__hour=datetime.now().hour
             )
-        elif upload_date == SearchUploadDate.TODAY:
+        elif upload_date == SearchUploadDate.TODAY.value:
             filtered_videos = filtered_videos.filter(
-                publication_date__date=datetime.date.today()
+                publication_date__day=datetime.today().day
             )
-        elif upload_date == SearchUploadDate.THIS_WEEK:
+        elif upload_date == SearchUploadDate.THIS_WEEK.value:
             filtered_videos = filtered_videos.filter(
-                publication_date__week=datetime.date.today().isocalendar().week
+                publication_date__week=datetime.today().isocalendar().week
             )
-        elif upload_date == SearchUploadDate.THIS_MONTH:
+        elif upload_date == SearchUploadDate.THIS_MONTH.value:
             filtered_videos = filtered_videos.filter(
-                publication_date__month=datetime.datetime.today().month
+                publication_date__month=datetime.today().month
             )
-        elif upload_date == SearchUploadDate.THIS_YEAR:
+        elif upload_date == SearchUploadDate.THIS_YEAR.value:
             filtered_videos = filtered_videos.filter(
-                publication_date__year=datetime.datetime.today().year
+                publication_date__year=datetime.today().year
             )
 
-        # ESTO PODRÍA MEJORARLO
         if sort_by == SearchSortOptions.UPLOAD_DATE.value:
             filtered_videos = filtered_videos.order_by('publication_date')
         elif sort_by == SearchSortOptions.VIEW_COUNT.value:
