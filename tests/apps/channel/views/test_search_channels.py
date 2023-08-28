@@ -11,7 +11,7 @@ from tests.factories.user_account import UserFactory
 from apps.channel.models import Channel
 from apps.user.models import UserAccount
 
-from youtube_clone.enums import SortByEnum
+from youtube_clone.enums import SearchSortOptions
 
 
 class TestSearchChannels(APITestCase):
@@ -99,7 +99,7 @@ class TestSearchChannels(APITestCase):
             self.url,
             {
                 'search_query': self.SEARCH_QUERY,
-                'sort_by': SortByEnum.UPLOAD_DATE.value
+                'sort_by': SearchSortOptions.UPLOAD_DATE.value
             }
         )
 
@@ -118,7 +118,7 @@ class TestSearchChannels(APITestCase):
             self.url,
             {
                 'search_query': self.SEARCH_QUERY,
-                'sort_by': SortByEnum.VIEW_COUNT.value
+                'sort_by': SearchSortOptions.VIEW_COUNT.value
             }
         )
 
@@ -137,7 +137,7 @@ class TestSearchChannels(APITestCase):
             self.url,
             {
                 'search_query': self.SEARCH_QUERY,
-                'sort_by': SortByEnum.RATING.value
+                'sort_by': SearchSortOptions.RATING.value
             }
         )
 

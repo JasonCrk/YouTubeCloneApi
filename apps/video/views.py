@@ -1,6 +1,6 @@
 import datetime
 
-from django.db.models import Q, Count, Sum, Subquery, OuterRef
+from django.db.models import Q, Count, Sum
 from django.http import Http404
 
 from rest_framework import status, generics
@@ -9,14 +9,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 
-from apps.video.models import Video, LikedVideo, VideoView
+from apps.video.models import Video, LikedVideo
 from apps.channel.models import Channel
 
 from apps.video import serializers
 
 from youtube_clone.utils.storage import upload_video, upload_image
 
-from youtube_clone.enums import SortByEnum, UploadDateEnum, VideoSortOptions
+from youtube_clone.enums import SearchSortOptions, SearchUploadDate, VideoSortOptions
 
 
 class RetrieveChannelVideosView(APIView):
@@ -80,35 +80,35 @@ class SearchVideosView(APIView):
         )
 
         # ESTO PODRÍA MEJORARLO
-        if upload_date == UploadDateEnum.LAST_HOUR:
+        if upload_date == SearchUploadDate.LAST_HOUR:
             filtered_videos = filtered_videos.filter(
                 timestamp__hour=datetime.datetime.today().hour
             )
-        elif upload_date == UploadDateEnum.TODAY:
+        elif upload_date == SearchUploadDate.TODAY:
             filtered_videos = filtered_videos.filter(
                 publication_date__date=datetime.date.today()
             )
-        elif upload_date == UploadDateEnum.THIS_WEEK:
+        elif upload_date == SearchUploadDate.THIS_WEEK:
             filtered_videos = filtered_videos.filter(
                 publication_date__week=datetime.date.today().isocalendar().week
             )
-        elif upload_date == UploadDateEnum.THIS_MONTH:
+        elif upload_date == SearchUploadDate.THIS_MONTH:
             filtered_videos = filtered_videos.filter(
                 publication_date__month=datetime.datetime.today().month
             )
-        elif upload_date == UploadDateEnum.THIS_YEAR:
+        elif upload_date == SearchUploadDate.THIS_YEAR:
             filtered_videos = filtered_videos.filter(
                 publication_date__year=datetime.datetime.today().year
             )
 
         # ESTO PODRÍA MEJORARLO
-        if sort_by == SortByEnum.UPLOAD_DATE.value:
+        if sort_by == SearchSortOptions.UPLOAD_DATE.value:
             filtered_videos = filtered_videos.order_by('publication_date')
-        elif sort_by == SortByEnum.VIEW_COUNT.value:
+        elif sort_by == SearchSortOptions.VIEW_COUNT.value:
             filtered_videos = filtered_videos.annotate(
                 total_views=Sum('videoview__count', default=0)
             ).order_by('-total_views')
-        elif sort_by == SortByEnum.RATING.value:
+        elif sort_by == SearchSortOptions.RATING.value:
             filtered_videos = filtered_videos.annotate(
                 num_likes=Count('likes')
             ).order_by('-num_likes')

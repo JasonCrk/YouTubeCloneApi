@@ -13,7 +13,7 @@ from apps.video.models import VideoView
 from apps.channel import serializers
 
 from youtube_clone.utils.storage import upload_image
-from youtube_clone.enums import SortByEnum
+from youtube_clone.enums import SearchSortOptions
 
 
 class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
@@ -77,9 +77,9 @@ class SearchChannelsView(APIView):
             Q(name=search_query) | Q(name__icontains=search_query)
         )
 
-        if sort_by == SortByEnum.UPLOAD_DATE.value:
+        if sort_by == SearchSortOptions.UPLOAD_DATE.value:
             filtered_channels = filtered_channels.order_by('joined')
-        elif sort_by == SortByEnum.VIEW_COUNT.value:
+        elif sort_by == SearchSortOptions.VIEW_COUNT.value:
             total_video_views = Subquery(
                 VideoView.objects.filter(
                     video__channel__pk=OuterRef('pk')
@@ -89,7 +89,7 @@ class SearchChannelsView(APIView):
             filtered_channels = filtered_channels.annotate(
                 total_views=Sum(total_video_views)
             ).order_by('total_views')
-        elif sort_by == SortByEnum.RATING.value:
+        elif sort_by == SearchSortOptions.RATING.value:
             total_channel_subscribers = Subquery(
                 ChannelSubscription.objects.filter(
                     subscribing__pk=OuterRef('pk')

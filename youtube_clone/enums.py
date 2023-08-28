@@ -1,13 +1,13 @@
 from enum import Enum
 
 
-class SortByEnum(Enum):
+class SearchSortOptions(Enum):
     UPLOAD_DATE = 'upload_date'
     VIEW_COUNT = 'view_count'
     RATING = 'rating'
 
 
-class UploadDateEnum(Enum):
+class SearchUploadDate(Enum):
     LAST_HOUR = 'last_hour'
     TODAY = 'today'
     THIS_WEEK = 'this_week'
