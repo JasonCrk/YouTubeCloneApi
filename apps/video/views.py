@@ -105,14 +105,9 @@ class SearchVideosView(APIView):
         if sort_by == SortByEnum.UPLOAD_DATE.value:
             filtered_videos = filtered_videos.order_by('publication_date')
         elif sort_by == SortByEnum.VIEW_COUNT.value:
-            total_video_views = Subquery(
-                VideoView.objects.filter(
-                    video__pk=OuterRef('pk')
-                ).values_list('count')
-            )
             filtered_videos = filtered_videos.annotate(
-                total_views=Sum(total_video_views)
-            ).order_by('total_views')
+                total_views=Sum('videoview__count', default=0)
+            ).order_by('-total_views')
         elif sort_by == SortByEnum.RATING.value:
             filtered_videos = filtered_videos.annotate(
                 num_likes=Count('likes')
