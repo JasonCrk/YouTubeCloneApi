@@ -19,3 +19,8 @@ class VideoSortOptions(Enum):
     MOST_POPULAR = 'most_popular'
     RECENTLY_UPLOADED = 'recently_uploaded'
     OLDEST_UPLOADED = 'oldest_uploaded'
+
+
+class CommentSortOptions(Enum):
+    TOP_COMMENTS = 'top_comments'
+    NEWEST_FIRST = 'newest_first'

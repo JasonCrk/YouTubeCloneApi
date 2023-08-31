@@ -5,7 +5,7 @@ from apps.comment.models import Comment, LikedComment
 from apps.channel.serializers import CurrentChannelSerializer
 
 
-class ListCommentSerializer(serializers.ModelSerializer):
+class CommentListSerializer(serializers.ModelSerializer):
     channel = CurrentChannelSerializer(read_only=True)
     dislikes = serializers.SerializerMethodField('comment_dislikes')
 

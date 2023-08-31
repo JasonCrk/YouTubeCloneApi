@@ -1,3 +1,5 @@
+from django.db.models import Count, Case, When, IntegerField
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +9,8 @@ from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
 
 from apps.comment import serializers
+
+from youtube_clone.enums import CommentSortOptions
 
 
 class RetrieveVideoCommentsView(APIView):
@@ -18,9 +22,23 @@ class RetrieveVideoCommentsView(APIView):
                 'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
+        sort_by = request.query_params.get('sort_by')
+
         video_comments = Comment.objects.filter(video=video, comment__isnull=True)
 
-        serialized_video_comments = serializers.ListCommentSerializer(video_comments, many=True)
+        if sort_by == CommentSortOptions.TOP_COMMENTS.value:
+            video_comments = video_comments.annotate(
+                num_likes=Count(
+                    Case(
+                        When(likedcomment__liked=True, then=1),
+                        output_field=IntegerField()
+                    )
+                )
+            ).order_by('-num_likes')
+        elif sort_by == CommentSortOptions.NEWEST_FIRST.value:
+            video_comments = video_comments.order_by('publication_date')
+
+        serialized_video_comments = serializers.CommentListSerializer(video_comments, many=True)
 
         return Response({
             'data': serialized_video_comments.data
@@ -38,7 +56,7 @@ class RetrieveCommentsOfCommentView(APIView):
 
         comments_of_comment = Comment.objects.filter(comment=comment)
 
-        serialized_comments_of_comment = serializers.ListCommentSerializer(comments_of_comment, many=True)
+        serialized_comments_of_comment = serializers.CommentListSerializer(comments_of_comment, many=True)
 
         return Response({
             'data': serialized_comments_of_comment.data
