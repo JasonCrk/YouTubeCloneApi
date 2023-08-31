@@ -7,7 +7,7 @@ from tests.factories.comment import CommentFactory
 
 from apps.comment.models import Comment
 
-from apps.comment.serializers import ListCommentSerializer
+from apps.comment.serializers import CommentListSerializer
 
 
 class TestRetrieveCommentsOfComment(APITestCase):
@@ -23,7 +23,7 @@ class TestRetrieveCommentsOfComment(APITestCase):
 
         response = self.client.get(self.url)
 
-        serialized_comments = ListCommentSerializer(comments_of_comment, many=True)
+        serialized_comments = CommentListSerializer(comments_of_comment, many=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
