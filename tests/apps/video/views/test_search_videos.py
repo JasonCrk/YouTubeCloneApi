@@ -134,7 +134,7 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by LAST HOUR upload date
         """
         today = timezone.now()
-        different_time = today.replace(hour=today.hour - 1)
+        different_time = today.replace(hour=today.hour - 1 if today.hour != 0 else today.hour + 1)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
