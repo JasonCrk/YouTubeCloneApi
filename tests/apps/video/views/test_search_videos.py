@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.factories.video import VideoFactory, VideoViewFactory, LikeVideoFactory
+from tests.factories.video import DislikeVideoFactory, VideoFactory, VideoViewFactory, LikeVideoFactory
 
 from apps.video.models import Video
 
@@ -104,7 +104,7 @@ class TestSearchVideos(APITestCase):
 
     def test_sorted_by_RATING(self):
         """
-        Should verify that the searched videos are sorted by rating
+        Should verify that the searched videos are sorted by RATING ()
         """
         first_video_with_most_likes: Video = VideoFactory(title=self.SEARCH_QUERY)
         LikeVideoFactory.create(video=first_video_with_most_likes)
@@ -128,6 +128,29 @@ class TestSearchVideos(APITestCase):
         self.assertEqual(searched_videos_ids[0], first_video_with_most_likes.pk)
         self.assertEqual(searched_videos_ids[1], second_video_with_most_likes.pk)
         self.assertEqual(searched_videos_ids[2], video_without_likes.pk)
+
+    def test_sorted_by_RATING_ignored_dislikes(self):
+        """
+        Should return the videos sorted by RATING ignoring the dislikes
+        """
+        video_with_most_dislikes: Video = VideoFactory.create(title=self.SEARCH_QUERY)
+        DislikeVideoFactory.create(video=video_with_most_dislikes)
+
+        video_with_most_likes: Video = VideoFactory.create(title=self.SEARCH_QUERY)
+        LikeVideoFactory.create(video=video_with_most_likes)
+
+        response = self.client.get(
+            self.url,
+            {
+                'search_query': self.SEARCH_QUERY,
+                'sort_by': SearchSortOptions.RATING.value
+            }
+        )
+
+        searched_videos_ids = [dict(video).get('id') for video in response.data.get('data')]
+
+        self.assertEqual(searched_videos_ids[0], video_with_most_likes.pk)
+        self.assertEqual(searched_videos_ids[1], video_with_most_dislikes.pk)
 
     def test_search_by_LAST_HOUR_upload_date(self):
         """
