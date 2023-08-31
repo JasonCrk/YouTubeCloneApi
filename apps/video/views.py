@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, Case, When, IntegerField
 from django.http import Http404
 
 from rest_framework import status, generics
@@ -108,7 +108,12 @@ class SearchVideosView(APIView):
             ).order_by('-total_views')
         elif sort_by == SearchSortOptions.RATING.value:
             filtered_videos = filtered_videos.annotate(
-                num_likes=Count('likes')
+                num_likes=Count(
+                    Case(
+                        When(likedvideo__liked=True, then=1),
+                        output_field=IntegerField()
+                    )
+                )
             ).order_by('-num_likes')
 
         serialized_videos = serializers.VideoListSerializer(
