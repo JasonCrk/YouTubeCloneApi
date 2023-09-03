@@ -62,13 +62,39 @@ class VideoListSerializer(serializers.ModelSerializer):
 class VideoDetailsSerializer(serializers.ModelSerializer):
     channel = ChannelListSerializer(read_only=True)
     dislikes = serializers.SerializerMethodField('video_dislikes')
-    comment_count = serializers.SerializerMethodField('video_comments')
+    comments = serializers.SerializerMethodField('video_comments')
+    liked = serializers.SerializerMethodField('video_liked')
+    disliked = serializers.SerializerMethodField('video_disliked')
 
     def video_dislikes(self, instance: Video):
         return LikedVideo.objects.filter(video=instance, liked=False).count()
 
     def video_comments(self, instance: Video):
         return Comment.objects.filter(video=instance).count()
+
+    def video_liked(self, instance: Comment):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            return False
+
+        return LikedVideo.objects.filter(
+            video=instance,
+            channel=user.current_channel,
+            liked=True
+        ).exists()
+
+    def video_disliked(self, instance: Comment):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            return False
+
+        return LikedVideo.objects.filter(
+            video=instance,
+            channel=user.current_channel,
+            liked=False
+        ).exists()
 
     class Meta:
         model = Video
@@ -80,9 +106,11 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
             'channel',
             'publication_date',
             'views',
+            'comments',
             'likes',
             'dislikes',
-            'comment_count'
+            'liked',
+            'disliked',
         )
 
     def to_representation(self, instance):

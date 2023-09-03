@@ -1,12 +1,11 @@
 from datetime import datetime
 
 from django.db.models import Q, Count, Sum, Case, When, IntegerField
-from django.http import Http404
 
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from apps.video.models import Video, LikedVideo
@@ -52,16 +51,25 @@ class RetrieveChannelVideosView(APIView):
 
 
 class RetrieveVideoDetailsView(generics.RetrieveAPIView):
-    queryset = Video.objects.all()
-    serializer_class = serializers.VideoDetailsSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Http404):
+    def get(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(pk=video_id)
+        except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        return super().handle_exception(exc)
+        serialized_video = serializers.VideoDetailsSerializer(
+            video,
+            context={'request': request}
+        )
+
+        return Response(
+            serialized_video.data,
+            status=status.HTTP_200_OK
+        )
 
 
 class SearchVideosView(APIView):
