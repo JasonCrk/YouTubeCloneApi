@@ -23,7 +23,11 @@ class TestRetrieveCommentsOfComment(APITestCase):
 
         response = self.client.get(self.url)
 
-        serialized_comments = CommentListSerializer(comments_of_comment, many=True)
+        serialized_comments = CommentListSerializer(
+            comments_of_comment,
+            many=True,
+            context={'request': response.wsgi_request}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(

@@ -8,9 +8,35 @@ from apps.channel.serializers import CurrentChannelSerializer
 class CommentListSerializer(serializers.ModelSerializer):
     channel = CurrentChannelSerializer(read_only=True)
     dislikes = serializers.SerializerMethodField('comment_dislikes')
+    liked = serializers.SerializerMethodField('comment_liked')
+    disliked = serializers.SerializerMethodField('comment_disliked')
 
     def comment_dislikes(self, instance: Comment):
         return LikedComment.objects.filter(comment=instance, liked=False).count()
+
+    def comment_liked(self, instance: Comment):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            return False
+
+        return LikedComment.objects.filter(
+            comment=instance,
+            channel=user.current_channel,
+            liked=True
+        ).exists()
+
+    def comment_disliked(self, instance: Comment):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            return False
+
+        return LikedComment.objects.filter(
+            comment=instance,
+            channel=user.current_channel,
+            liked=False
+        ).exists()
 
     class Meta:
         model = Comment
@@ -21,7 +47,9 @@ class CommentListSerializer(serializers.ModelSerializer):
             'publication_date',
             'was_edited',
             'likes',
-            'dislikes'
+            'dislikes',
+            'liked',
+            'disliked'
         )
 
     def to_representation(self, instance: Comment):

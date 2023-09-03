@@ -3,7 +3,7 @@ from django.db.models import Count, Case, When, IntegerField
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from apps.comment.models import Comment, LikedComment
 from apps.video.models import Video
@@ -14,6 +14,8 @@ from youtube_clone.enums import CommentSortOptions
 
 
 class RetrieveVideoCommentsView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
@@ -38,7 +40,11 @@ class RetrieveVideoCommentsView(APIView):
         elif sort_by == CommentSortOptions.NEWEST_FIRST.value:
             video_comments = video_comments.order_by('publication_date')
 
-        serialized_video_comments = serializers.CommentListSerializer(video_comments, many=True)
+        serialized_video_comments = serializers.CommentListSerializer(
+            video_comments,
+            many=True,
+            context={'request': request}
+        )
 
         return Response({
             'data': serialized_video_comments.data
@@ -56,7 +62,11 @@ class RetrieveCommentsOfCommentView(APIView):
 
         comments_of_comment = Comment.objects.filter(comment=comment)
 
-        serialized_comments_of_comment = serializers.CommentListSerializer(comments_of_comment, many=True)
+        serialized_comments_of_comment = serializers.CommentListSerializer(
+            comments_of_comment,
+            many=True,
+            context={'request': request}
+        )
 
         return Response({
             'data': serialized_comments_of_comment.data

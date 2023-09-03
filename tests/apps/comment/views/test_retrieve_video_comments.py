@@ -50,7 +50,10 @@ class TestRetrieveVideoComments(APITestCase):
 
         response = self.client.get(self.url)
 
-        serialized_video_comment = CommentListSerializer(video_comment)
+        serialized_video_comment = CommentListSerializer(
+            video_comment,
+            context={'request': response.wsgi_request}
+        )
 
         first_retrieved_comment = dict(response.data.get('data')[0])
 
