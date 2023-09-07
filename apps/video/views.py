@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import FormParser, MultiPartParser
 
-from apps.video.models import Video, LikedVideo
+from apps.video.models import Video, LikedVideo, VideoView
 from apps.channel.models import Channel
 
 from apps.video import serializers
@@ -169,6 +169,37 @@ class CreateVideoView(APIView):
         return Response({
             'message': 'The video has been uploaded'
         }, status=status.HTTP_201_CREATED)
+
+
+class AddVisitToVideoView(APIView):
+    def post(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(pk=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.is_authenticated:
+            video_view, created = VideoView.objects.get_or_create(
+                channel=request.user.current_channel,
+                video=video
+            )
+
+            if not created:
+                video_view.count += 1
+                video_view.save()
+        else:
+            video_view, created = VideoView.objects.get_or_create(
+                channel=None,
+                video=video
+            )
+
+            if not created:
+                video_view.count += 1
+                video_view.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LikeVideoView(APIView):

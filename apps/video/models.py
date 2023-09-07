@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from apps.channel.models import Channel
 
@@ -24,14 +25,18 @@ class VideoView(models.Model):
     channel = models.ForeignKey(
         Channel,
         on_delete=models.CASCADE,
-        related_query_name='views'
+        related_query_name='views',
+        null=True,
+        blank=True
     )
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     count = models.PositiveBigIntegerField(default=1)
-    last_view_date = models.DateTimeField(auto_now=True, blank=True)
+    last_view_date = models.DateTimeField(default=timezone.now, blank=True)
 
     def __str__(self):
-        return self.channel.name
+        if self.channel is not None:
+            return self.channel.name
+        return self.video.title
 
 
 class LikedVideo(models.Model):
