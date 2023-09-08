@@ -157,12 +157,12 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by LAST HOUR upload date
         """
         today = timezone.now()
-        different_time = today.replace(hour=today.hour - 1 if today.hour != 0 else today.hour + 1)
+        one_hour_ago = today - timezone.timedelta(hours=1)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
 
-        not_expected_video.publication_date = different_time
+        not_expected_video.publication_date = one_hour_ago
         not_expected_video.save()
 
         response = self.client.get(
@@ -183,12 +183,12 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by TODAY upload date
         """
         today = timezone.now()
-        different_day = today.replace(day=today.day - 1)
+        one_day_ago = today - timezone.timedelta(days=1)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
 
-        not_expected_video.publication_date = different_day
+        not_expected_video.publication_date = one_day_ago
         not_expected_video.save()
 
         response = self.client.get(
@@ -209,12 +209,12 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by THIS WEEK upload date
         """
         today = timezone.now()
-        different_week = today.replace(day=today.day - 8)
+        one_week_ago = today - timezone.timedelta(days=7)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
 
-        not_expected_video.publication_date = different_week
+        not_expected_video.publication_date = one_week_ago
         not_expected_video.save()
 
         response = self.client.get(
@@ -235,12 +235,12 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by THIS MONTH upload date
         """
         today = timezone.now()
-        different_month = today.replace(month=today.month - 1)
+        one_month_ago = today - timezone.timedelta(days=today.day)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
 
-        not_expected_video.publication_date = different_month
+        not_expected_video.publication_date = one_month_ago
         not_expected_video.save()
 
         response = self.client.get(
@@ -261,12 +261,12 @@ class TestSearchVideos(APITestCase):
         Should verify that the searched videos are filtered by THIS YEAR upload date
         """
         today = timezone.now()
-        different_year = today.replace(year=today.year - 1)
+        one_year_ago = today - timezone.timedelta(days=365)
 
         expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
         not_expected_video: Video = VideoFactory.create(title=self.SEARCH_QUERY)
 
-        not_expected_video.publication_date = different_year
+        not_expected_video.publication_date = one_year_ago
         not_expected_video.save()
 
         response = self.client.get(
