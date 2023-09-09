@@ -14,19 +14,16 @@ class TestLikeComment(APITestCaseWithAuth):
         super().setUp()
 
         self.comment: Comment = CommentFactory.create(channel=self.user.current_channel)
-        self.url = reverse('like_comment')
+
+        self.url_name = 'like_comment'
 
     def test_success_response_if_like_comment_added(self):
         """
         Should return a success response if the like to the comment has been added
         """
-        response = self.client.post(
-            self.url,
-            {
-                'comment_id': self.comment.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'comment_id': self.comment.pk})
+
+        response = self.client.post(url)
 
         self.assertDictEqual(response.data, {'message': 'Like comment added'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -35,13 +32,9 @@ class TestLikeComment(APITestCaseWithAuth):
         """
         Should verify if the like to the comment has been added successfully
         """
-        self.client.post(
-            self.url,
-            {
-                'comment_id': self.comment.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'comment_id': self.comment.pk})
+
+        self.client.post(url)
 
         like_comment = LikedComment.objects.filter(
             channel=self.user.current_channel,
@@ -59,13 +52,9 @@ class TestLikeComment(APITestCaseWithAuth):
             comment=self.comment
         )
 
-        response = self.client.post(
-            self.url,
-            {
-                'comment_id': self.comment.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'comment_id': self.comment.pk})
+
+        response = self.client.post(url)
 
         self.assertDictEqual(response.data, {'message': 'Like comment removed'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -79,13 +68,9 @@ class TestLikeComment(APITestCaseWithAuth):
             comment=self.comment
         )
 
-        self.client.post(
-            self.url,
-            {
-                'comment_id': self.comment.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'comment_id': self.comment.pk})
+
+        self.client.post(url)
 
         like_comment = LikedComment.objects.filter(
             channel=self.user.current_channel,
@@ -103,13 +88,9 @@ class TestLikeComment(APITestCaseWithAuth):
             comment=self.comment
         )
 
-        self.client.post(
-            self.url,
-            {
-                'comment_id': self.comment.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'comment_id': self.comment.pk})
+
+        self.client.post(url)
 
         like_comment = LikedComment.objects.filter(
             channel=self.user.current_channel,
@@ -127,28 +108,9 @@ class TestLikeComment(APITestCaseWithAuth):
 
         self.comment.delete()
 
-        response = self.client.post(
-            self.url,
-            {
-                'comment_id': non_exist_comment_id
-            },
-            format='json'
-        )
+        non_exist_comment_url = reverse(self.url_name, kwargs={'comment_id': non_exist_comment_id})
+
+        response = self.client.post(non_exist_comment_url)
 
         self.assertDictEqual(response.data, {'message': 'The comment does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_comment_id_is_not_a_number(self):
-        """
-        Should return an error response and a 400 status code if the comment ID is not a number
-        """
-        response = self.client.post(
-            self.url,
-            {
-                'comment_id': 'a'
-            },
-            format='json'
-        )
-
-        self.assertDictEqual(response.data, {'message': 'The comment ID must be a number'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

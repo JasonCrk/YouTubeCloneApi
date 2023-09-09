@@ -17,21 +17,20 @@ class TestRepositionLink(APITestCaseWithAuth):
     def setUp(self):
         super().setUp()
 
-        self.url = reverse('reposition_link')
-
         self.first_link: Link = LinkFactory.create(channel=self.user.current_channel)
         self.second_link: Link = LinkFactory.create(channel=self.user.current_channel)
+
+        self.url_name = 'reposition_link'
 
     def test_success_response(self):
         """
         Should return a success response if the link has been repositioned
         """
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.pk,
-                'new_position': self.second_link.position
-            },
+            url,
+            {'new_position': self.second_link.position},
             format='json'
         )
 
@@ -42,10 +41,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         """
         Should verify if the first link changes position with the second link position
         """
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         self.client.post(
-            self.url,
+            url,
             {
-                'link_id': self.first_link.pk,
                 'new_position': self.second_link.position
             },
             format='json'
@@ -64,12 +64,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         LinkFactory.create(channel=self.user.current_channel)
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)
 
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.pk,
-                'new_position': fourth_link.position
-            },
+            url,
+            {'new_position': fourth_link.position},
             format='json'
         )
 
@@ -84,12 +83,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         third_link: Link = LinkFactory.create(channel=self.user.current_channel)
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)
 
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.pk,
-                'new_position': fourth_link.position
-            },
+            url,
+            {'new_position': fourth_link.position},
             format='json'
         )
 
@@ -108,12 +106,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         LinkFactory.create(channel=self.user.current_channel)
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)
 
+        url = reverse(self.url_name, kwargs={'link_id': fourth_link.pk})
+
         self.client.post(
-            self.url,
-            {
-                'link_id': fourth_link.pk,
-                'new_position': self.first_link.position
-            },
+            url,
+            {'new_position': self.first_link.position},
             format='json'
         )
 
@@ -129,12 +126,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         third_link: Link = LinkFactory.create(channel=self.user.current_channel)
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)
 
+        url = reverse(self.url_name, kwargs={'link_id': fourth_link.pk})
+
         self.client.post(
-            self.url,
-            {
-                'link_id': fourth_link.pk,
-                'new_position': self.first_link.position
-            },
+            url,
+            {'new_position': self.first_link.position},
             format='json'
         )
 
@@ -155,12 +151,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         fourth_link: Link = LinkFactory.create(channel=self.user.current_channel)
         fifth_link: Link = LinkFactory.create(channel=self.user.current_channel)
 
+        url = reverse(self.url_name, kwargs={'link_id': self.second_link.pk})
+
         self.client.post(
-            self.url,
-            {
-                'link_id': self.second_link.pk,
-                'new_position': fourth_link.position
-            },
+            url,
+            {'new_position': fourth_link.position},
             format='json'
         )
 
@@ -180,12 +175,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         """
         not_own_link: Link = LinkFactory.create()
 
+        url = reverse(self.url_name, kwargs={'link_id': not_own_link.pk})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': not_own_link.pk,
-                'new_position': self.first_link.pk
-            },
+            url,
+            {'new_position': self.first_link.pk},
             format='json'
         )
 
@@ -196,16 +190,15 @@ class TestRepositionLink(APITestCaseWithAuth):
         """
         Should return an error response if the link does not exist
         """
-        non_exists_first_link_id = self.first_link.pk
+        non_exist_first_link_id = self.first_link.pk
 
         self.first_link.delete()
 
+        non_exist_first_link_url = reverse(self.url_name, kwargs={'link_id': non_exist_first_link_id})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': non_exists_first_link_id,
-                'new_position': self.second_link.position
-            },
+            non_exist_first_link_url,
+            {'new_position': self.second_link.position},
             format='json'
         )
 
@@ -216,12 +209,11 @@ class TestRepositionLink(APITestCaseWithAuth):
         """
         Should return an error response if no exist the link has the new position
         """
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.pk,
-                'new_position': 1000
-            },
+            url,
+            {'new_position': 1000},
             format='json'
         )
 
@@ -232,44 +224,26 @@ class TestRepositionLink(APITestCaseWithAuth):
         """
         Should return an error response if the new position is equal to link position
         """
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.id,
-                'new_position': self.first_link.position
-            },
+            url,
+            {'new_position': self.first_link.position},
             format='json'
         )
 
         self.assertDictEqual(response.data, {'message': 'The new position must not be the same as the link position'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_link_id_is_not_a_number(self):
-        """
-        Should return an error response if the link ID is not a number
-        """
-        response = self.client.post(
-            self.url,
-            {
-                'link_id': faker.pystr(),
-                'new_position': self.first_link.position
-            },
-            format='json'
-        )
-
-        self.assertDictEqual(response.data, {'message': 'The link ID must be a number'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_new_position_is_not_a_number(self):
         """
         Should return an error response if the new position is not a number
         """
+        url = reverse(self.url_name, kwargs={'link_id': self.first_link.pk})
+
         response = self.client.post(
-            self.url,
-            {
-                'link_id': self.first_link.pk,
-                'new_position': faker.pystr()
-            },
+            url,
+            {'new_position': faker.pystr()},
             format='json'
         )
 

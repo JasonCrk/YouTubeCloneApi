@@ -19,19 +19,15 @@ class TestLikeVideo(APITestCaseWithAuth):
 
         self.video: Video = VideoFactory.create(channel=self.user.current_channel)
 
-        self.url = reverse('like_video')
+        self.url_name = 'like_video'
 
     def test_success_response(self):
         """
         Should return a success response if the like to video has been added
         """
-        response = self.client.post(
-            self.url,
-            {
-                'video_id': self.video.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
+
+        response = self.client.post(url)
 
         self.assertDictEqual(response.data, {'message': 'Like video added'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -40,13 +36,9 @@ class TestLikeVideo(APITestCaseWithAuth):
         """
         Should verify if the like to video has been added successfully
         """
-        self.client.post(
-            self.url,
-            {
-                'video_id': self.video.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
+
+        self.client.post(url)
 
         like_video = LikedVideo.objects.filter(
             channel=self.user.current_channel,
@@ -65,13 +57,9 @@ class TestLikeVideo(APITestCaseWithAuth):
             video=self.video
         )
 
-        response = self.client.post(
-            self.url,
-            {
-                'video_id': self.video.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
+
+        response = self.client.post(url)
 
         self.assertDictEqual(response.data, {'message': 'Like video removed'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -85,13 +73,9 @@ class TestLikeVideo(APITestCaseWithAuth):
             video=self.video
         )
 
-        self.client.post(
-            self.url,
-            {
-                'video_id': self.video.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
+
+        self.client.post(url)
 
         like_video = LikedVideo.objects.filter(
             channel=self.user.current_channel,
@@ -110,13 +94,9 @@ class TestLikeVideo(APITestCaseWithAuth):
             video=self.video
         )
 
-        self.client.post(
-            self.url,
-            {
-                'video_id': self.video.pk
-            },
-            format='json'
-        )
+        url = reverse(self.url_name, kwargs={'video_id': self.video.pk})
+
+        self.client.post(url)
 
         like_video = LikedVideo.objects.filter(
             channel=self.user.current_channel,
@@ -126,21 +106,6 @@ class TestLikeVideo(APITestCaseWithAuth):
 
         self.assertTrue(like_video.exists())
 
-    def test_video_id_is_not_a_number(self):
-        """
-        Should return an error response and a 400 status code if the video ID is not a number
-        """
-        response = self.client.post(
-            self.url,
-            {
-                'video_id': faker.pystr()
-            },
-            format='json'
-        )
-
-        self.assertDictEqual(response.data, {'message': 'The video ID must be a number'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_video_does_not_exist(self):
         """
         Should return an error response and a 404 status code if the video does not exist
@@ -149,13 +114,9 @@ class TestLikeVideo(APITestCaseWithAuth):
 
         self.video.delete()
 
-        response = self.client.post(
-            self.url,
-            {
-                'video_id': non_exist_video_id
-            },
-            format='json'
-        )
+        non_exist_video_url = reverse(self.url_name, kwargs={'video_id': non_exist_video_id})
+
+        response = self.client.post(non_exist_video_url)
 
         self.assertDictEqual(response.data, {'message': 'The video does not exist'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
