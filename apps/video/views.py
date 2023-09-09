@@ -205,14 +205,7 @@ class AddVisitToVideoView(APIView):
 class LikeVideoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
-        try:
-            video_id = int(request.data['video_id'])
-        except ValueError:
-            return Response({
-                'message': 'The video ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
@@ -250,14 +243,7 @@ class LikeVideoView(APIView):
 class DislikeVideoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
-        try:
-            video_id = int(request.data['video_id'])
-        except ValueError:
-            return Response({
-                'message': 'The video ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
         except Video.DoesNotExist:
@@ -354,12 +340,7 @@ class DeleteVideoView(APIView):
                 'message': 'You are not the owner of the video'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            video.delete()
-        except:
-            return Response({
-                'message': 'Video deletion failed, please try again later'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        video.delete()
 
         return Response({
             'message': 'The video has been deleted'

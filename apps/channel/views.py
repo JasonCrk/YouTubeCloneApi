@@ -141,27 +141,20 @@ class CreateChannelView(APIView):
 class SwitchChannelView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
+    def post(self, request, channel_id, format=None):
         try:
-            channel_id = int(request.data['channel_id'])
-        except ValueError:
-            return Response({
-                'message': 'The channel ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            channel_to_change = Channel.objects.get(id=channel_id)
+            channel = Channel.objects.get(pk=channel_id)
         except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exist'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if channel_to_change.user != request.user:
+        if channel.user != request.user:
             return Response({
                 'message': 'You are not a owner of this channel'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        request.user.current_channel = channel_to_change
+        request.user.current_channel = channel
         request.user.save()
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
@@ -170,16 +163,9 @@ class SwitchChannelView(APIView):
 class SubscribeChannelView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
+    def post(self, request, channel_id, format=None):
         try:
-            channel_id = int(request.data['channel_id'])
-        except:
-            return Response({
-                'message': 'The channel ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            channel = Channel.objects.get(id=channel_id)
+            channel = Channel.objects.get(pk=channel_id)
         except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exist'

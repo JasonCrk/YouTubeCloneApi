@@ -4,22 +4,12 @@ from apps.comment import views
 
 urlpatterns = [
     path(
-        'like/',
-        views.LikeCommentView.as_view(),
-        name='like_comment'
-    ),
-    path(
-        'dislike/',
-        views.DislikeCommentView.as_view(),
-        name='dislike_comment'
-    ),
-    path(
-        'video/<int:video_id>',
+        'video/<int:video_id>/',
         views.RetrieveVideoCommentsView.as_view(),
         name='video_comments'
     ),
     path(
-        'comment/<int:comment_id>',
+        'comment/<int:comment_id>/',
         views.RetrieveCommentsOfCommentView.as_view(),
         name='comments_of_comment'
     ),
@@ -27,6 +17,16 @@ urlpatterns = [
         'create/<int:video_id>/',
         views.CreateVideoCommentView.as_view(),
         name='create_video_comment'
+    ),
+    path(
+        '<int:comment_id>/like/',
+        views.LikeCommentView.as_view(),
+        name='like_comment'
+    ),
+    path(
+        '<int:comment_id>/dislike/',
+        views.DislikeCommentView.as_view(),
+        name='dislike_comment'
     ),
     path(
         '<int:comment_id>/create/',

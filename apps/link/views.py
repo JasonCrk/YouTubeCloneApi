@@ -54,17 +54,10 @@ class CreateLinkView(APIView):
 class RepositionLinkView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
-        try:
-            link_id = int(request.data.get('link_id'))
-        except (ValueError, TypeError):
-            return Response({
-                'message': 'The link ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request, link_id, format=None):
         try:
             new_position = int(request.data.get('new_position'))
-        except (ValueError, TypeError):
+        except:
             return Response({
                 'message': 'The new position must be a number'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -104,7 +97,6 @@ class RepositionLinkView(APIView):
 
         if abs(link.position - new_position) == 1:
             link_to_update.position = link.position
-
             link_to_update.save()
         elif link.position > new_position:
             links_to_rearrange = channel_links_rearrange.filter(position__range=(new_position, link.position))

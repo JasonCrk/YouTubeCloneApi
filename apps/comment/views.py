@@ -135,14 +135,7 @@ class CreateCommentForCommentView(APIView):
 class LikeCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
-        try:
-            comment_id = int(request.data['comment_id'])
-        except ValueError:
-            return Response({
-                'message': 'The comment ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request, comment_id, format=None):
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
@@ -180,14 +173,7 @@ class LikeCommentView(APIView):
 class DislikeCommentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, format=None):
-        try:
-            comment_id = int(request.data['comment_id'])
-        except ValueError:
-            return Response({
-                'message': 'The comment ID must be a number'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def post(self, request, comment_id, format=None):
         try:
             comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
