@@ -290,7 +290,7 @@ class EditVideoView(APIView):
         except Video.DoesNotExist:
             return Response({
                 'message': 'The video does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_404_NOT_FOUND)
 
         if video.channel != request.user.current_channel:
             return Response({

@@ -105,7 +105,7 @@ class TestEditVideo(APITestCaseWithAuth):
         )
 
         self.assertDictEqual(response.data, {'message': 'The video does not exist'})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_another_channel_wants_to_edit_a_video_is_does_not_own(self):
         """
