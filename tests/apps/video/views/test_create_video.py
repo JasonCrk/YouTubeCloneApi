@@ -1,9 +1,9 @@
-import os
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from rest_framework import status
+
+from unittest.mock import patch
 
 from tests.setups import APITestCaseWithAuth
 
@@ -20,19 +20,20 @@ class TestCreateVideo(APITestCaseWithAuth):
 
         self.url = reverse('upload_video')
 
-        video_path = os.path.dirname(__file__) + '/resources/test_video.mp4'
-        with open(video_path, 'rb') as file:
-            video_content = file.read()
+        self.video = SimpleUploadedFile('video.mp4', b'video', content_type='video/mp4')
 
-        self.video = SimpleUploadedFile('video.mp4', video_content, content_type='video/mp4')
-
-        thumbnail_content = faker.image(size=(2, 2), hue=[90, 270])
+        thumbnail_content = faker.image(size=(1, 1), hue=[90, 270])
         self.thumbnail = SimpleUploadedFile('thumbnail.png', thumbnail_content, content_type='image/png')
 
-    def test_success_response(self):
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_image')
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_video')
+    def test_success_response(self, mock_upload_video, mock_upload_image):
         """
         Should return a success response if the video has been created
         """
+        mock_upload_video.return_value = 'https://cloudinary.com/video.mp4'
+        mock_upload_image.return_value = 'https://cloudinary.com/image.png'
+
         response = self.client.post(
             self.url,
             {
@@ -44,13 +45,21 @@ class TestCreateVideo(APITestCaseWithAuth):
             format='multipart'
         )
 
+        mock_upload_video.assert_called_once()
+        mock_upload_image.assert_called_once()
+
         self.assertDictEqual(response.data, {'message': 'The video has been uploaded'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_video_has_been_created(self):
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_image')
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_video')
+    def test_video_has_been_created(self, mock_upload_video, mock_upload_image):
         """
         Should verify if the video has been created successfully
         """
+        mock_upload_video.return_value = 'https://cloudinary.com/video.mp4'
+        mock_upload_image.return_value = 'https://cloudinary.com/image.png'
+
         self.client.post(
             self.url,
             {
@@ -61,6 +70,9 @@ class TestCreateVideo(APITestCaseWithAuth):
             },
             format='multipart'
         )
+
+        mock_upload_video.assert_called_once()
+        mock_upload_image.assert_called_once()
 
         channel_video = Video.objects.filter(channel=self.user.current_channel)
 

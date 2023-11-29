@@ -5,14 +5,18 @@ from .cloudinary_storage import upload_image_with_cloudinary, upload_video_with_
 
 debug = os.environ.get('DEBUG')
 
-def upload_image(image, folder):
-    if eval(debug):
-        return upload_image_with_cloudinary(image, folder)
 
-    return upload_image_with_azure_storage(image)
+class CloudinaryUploader:
+    @staticmethod
+    def upload_image(image, folder):
+        if eval(debug):
+            return upload_image_with_cloudinary(image, folder)
 
-def upload_video(video):
-    if eval(debug):
-        return upload_video_with_cloudinary(video)
+        return upload_image_with_azure_storage(image)
 
-    return upload_video_with_azure_storage(video)
+    @staticmethod
+    def upload_video(video):
+        if eval(debug):
+            return upload_video_with_cloudinary(video)
+
+        return upload_video_with_azure_storage(video)

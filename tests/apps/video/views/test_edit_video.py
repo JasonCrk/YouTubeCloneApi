@@ -3,6 +3,8 @@ from django.urls import reverse
 
 from rest_framework import status
 
+from unittest.mock import patch
+
 from tests.setups import APITestCaseWithAuth
 
 from tests.factories.video import VideoFactory
@@ -38,13 +40,15 @@ class TestEditVideo(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The video has been updated'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_video_thumbnail_has_been_updated(self):
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_image')
+    def test_video_thumbnail_has_been_updated(self, mock_upload_image):
         """
         Should verify if the video thumbnail has been updated successfully
         """
         thumbnail_data = faker.image(size=(2, 2), hue=[90, 270], image_format='png')
-
         thumbnail = SimpleUploadedFile('thumbnail.png', thumbnail_data, content_type='image/png')
+
+        mock_upload_image.return_value = 'https://cloudinary.com/image.png'
 
         self.client.patch(
             self.url,
@@ -53,6 +57,8 @@ class TestEditVideo(APITestCaseWithAuth):
             },
             format='multipart'
         )
+
+        mock_upload_image.assert_called_once()
 
         video_updated = Video.objects.get(id=self.video.pk)
 
@@ -131,7 +137,7 @@ class TestEditVideo(APITestCaseWithAuth):
         Should return an error response and a 400 status code if the data sent is invalid
         """
         fake_thumbnail_pdf_content = faker.image(
-            size=(2, 2),
+            size=(1, 1),
             hue='purple',
             luminosity='bright',
             image_format='pdf'

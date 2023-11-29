@@ -3,6 +3,8 @@ from django.urls import reverse
 
 from rest_framework import status
 
+from unittest.mock import patch
+
 from tests.setups import APITestCaseWithAuth
 
 from apps.channel.models import Channel
@@ -37,11 +39,14 @@ class TestEditChannel(APITestCaseWithAuth):
         self.assertDictEqual(response.data, {'message': 'The channel has been successfully updated'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_channel_banner_has_been_updated(self):
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_image')
+    def test_channel_banner_has_been_updated(self, mock_upload_image):
         """
         Should verify if the channel banner has been updated
         """
-        banner_content = faker.image(size=(2, 2), hue=[90, 270])
+        mock_upload_image.return_value = 'https://cloudinary.com/image.png'
+
+        banner_content = faker.image(size=(1, 1), hue=[90, 270])
         banner_image = SimpleUploadedFile('banner_default.png', banner_content, content_type='image/png')
 
         self.client.patch(
@@ -52,16 +57,20 @@ class TestEditChannel(APITestCaseWithAuth):
             format='multipart'
         )
 
+        mock_upload_image.assert_called_once()
+
         channel_edited: Channel = Channel.objects.get(id=self.user.current_channel.pk)
 
         self.assertNotEqual(self.user.current_channel.banner_url, channel_edited.banner_url)
 
-    def test_channel_picture_has_been_updated(self):
+    @patch('youtube_clone.utils.storage.CloudinaryUploader.upload_image')
+    def test_channel_picture_has_been_updated(self, mock_upload_image):
         """
         Should verify if the channel picture has been updated
         """
-        picture_content = faker.image(size=(2, 2), hue=[90, 270])
+        mock_upload_image.return_value = 'https://cloudinary.com/image.png'
 
+        picture_content = faker.image(size=(1, 1), hue=[90, 270])
         picture_image = SimpleUploadedFile('avatar_default.png', picture_content, content_type='image/png')
 
         self.client.patch(
@@ -71,6 +80,8 @@ class TestEditChannel(APITestCaseWithAuth):
             },
             format='multipart'
         )
+
+        mock_upload_image.assert_called_once()
 
         channel_edited: Channel = Channel.objects.get(id=self.user.current_channel.pk)
 

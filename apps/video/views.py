@@ -13,7 +13,7 @@ from apps.channel.models import Channel
 
 from apps.video import serializers
 
-from youtube_clone.utils.storage import upload_video, upload_image
+from youtube_clone.utils.storage import CloudinaryUploader
 
 from youtube_clone.enums import SearchSortOptions, SearchUploadDate, VideoSortOptions
 
@@ -151,14 +151,14 @@ class CreateVideoView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            new_video.validated_data['thumbnail'] = upload_image(video_data.get('thumbnail'), 'thumbnails')
+            new_video.validated_data['thumbnail'] = CloudinaryUploader.upload_image(video_data.get('thumbnail'), 'thumbnails')
         except:
             return Response({
                 'message': 'Failed to upload video thumbnail, please try again later'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            new_video.validated_data['video_url'] = upload_video(video_data.get('video'))
+            new_video.validated_data['video_url'] = CloudinaryUploader.upload_video(video_data.get('video'))
         except:
             return Response({
                 'message': 'Failed to upload video, please try again later'
@@ -310,7 +310,7 @@ class EditVideoView(APIView):
 
         if data.get('thumbnail') is not None:
             try:
-                thumbnail_image_url = upload_image(data['thumbnail'], 'thumbnails')
+                thumbnail_image_url = CloudinaryUploader.upload_image(data['thumbnail'], 'thumbnails')
                 updated_video.validated_data['thumbnail'] = thumbnail_image_url
             except:
                 return Response({

@@ -12,7 +12,7 @@ from apps.video.models import VideoView
 
 from apps.channel import serializers
 
-from youtube_clone.utils.storage import upload_image
+from youtube_clone.utils.storage import CloudinaryUploader
 from youtube_clone.enums import SearchSortOptions
 
 
@@ -218,7 +218,7 @@ class EditChannelView(APIView):
 
         if channel_data.get('banner') is not None:
             try:
-                banner_image_url = upload_image(channel_data.get('banner'), 'banners')
+                banner_image_url = CloudinaryUploader.upload_image(channel_data.get('banner'), 'banners')
                 updated_channel.validated_data['banner_url'] = banner_image_url
             except:
                 return Response({
@@ -227,7 +227,7 @@ class EditChannelView(APIView):
 
         if channel_data.get('picture') is not None:
             try:
-                picture_image_url = upload_image(channel_data.get('picture'), 'pictures')
+                picture_image_url = CloudinaryUploader.upload_image(channel_data.get('picture'), 'pictures')
                 updated_channel.validated_data['picture_url'] = picture_image_url
             except:
                 return Response({
