@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import FormParser, MultiPartParser
 
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
+
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import VideoView
 
@@ -30,6 +32,23 @@ class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
 
 
 class RetrieveChannelDetailsByHandleView(APIView):
+    @extend_schema(
+        summary='Retrieve channel details by handle',
+        description='Get the detail of a channel by its handle',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.ChannelDetailsSerializer
+            ),
+            404: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, channel_handle, format=None):
         try:
             channel = Channel.objects.get(handle=channel_handle)
@@ -46,6 +65,15 @@ class RetrieveChannelDetailsByHandleView(APIView):
 class RetrieveSubscribedChannelsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Retrieve subscribed channels',
+        description='',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.ChannelSimpleRepresentationSerializer(many=True)
+            )
+        }
+    )
     def get(self, request, format=None):
         ids_channels_subscribed = ChannelSubscription.objects.filter(
             subscriber=request.user.current_channel
@@ -64,6 +92,24 @@ class RetrieveSubscribedChannelsView(APIView):
 
 
 class SearchChannelsView(APIView):
+    @extend_schema(
+        summary='Search channels',
+        description='',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.ChannelListSerializer(many=True)
+            ),
+            400: OpenApiResponse(
+                description='Search query is required',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, format=None):
         search_query = request.query_params.get('search_query')
         sort_by = request.query_params.get('sort_by')
@@ -112,14 +158,49 @@ class SearchChannelsView(APIView):
 
 class CreateChannelView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.CreateChannelSerializer
 
+    @extend_schema(
+        summary='Create channel',
+        description='Create a channel',
+        request=inline_serializer(
+            'CreateChannel',
+            fields={
+                'name': serializers.serializers.CharField()
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                description='Channel has been created successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='The data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'name': {'type': 'array', 'items': {'type': 'string'}}
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request, format=None):
         channel_data = request.data
 
-        new_channel = serializers.CreateChannelSerializer(data={
-            'name': channel_data['name'],
-            'user': request.user.pk
-        })
+        channel_data['user'] = request.user.pk
+
+        new_channel = serializers.CreateChannelSerializer(data=channel_data)
 
         if not new_channel.is_valid():
             return Response({
@@ -140,7 +221,36 @@ class CreateChannelView(APIView):
 
 class SwitchChannelView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.CurrentChannelSerializer
 
+    @extend_schema(
+        summary='Switch channel',
+        description='Switch to another channel that you own',
+        request=None,
+        responses={
+            204: OpenApiResponse(
+                description='Channel change successful'
+            ),
+            404: OpenApiResponse(
+                description='Channel does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='You are not the owner of this channel',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def post(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(pk=channel_id)
@@ -162,7 +272,42 @@ class SwitchChannelView(APIView):
 
 class SubscribeChannelView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UpdateChannelSerializer
 
+    @extend_schema(
+        summary='Subscribe channel',
+        description='A channel subscribes to another channel and remove the subscription',
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                description='Channel subscribe to channel or remove channel subscription successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Channel does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Channel cannot subscribe to itself',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        },
+    )
     def post(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(pk=channel_id)
@@ -201,7 +346,42 @@ class SubscribeChannelView(APIView):
 class EditChannelView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser]
+    serializer_class = serializers.UpdateChannelSerializer
 
+    @extend_schema(
+        summary='Edit channel',
+        description='User can edit their current channel',
+        responses={
+            200: OpenApiResponse(
+                description='Successful update',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'handle': {'type': 'array', 'items': {'type': 'string'}},
+                                'description': {'type': 'array', 'items': {'type': 'string'}},
+                                'contact_email': {'type': 'array', 'items': {'type': 'string'}},
+                                'name': {'type': 'array', 'items': {'type': 'string'}},
+                                'banner': {'type': 'array', 'items': {'type': 'string'}},
+                                'picture': {'type': 'array', 'items': {'type': 'string'}},
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+    )
     def patch(self, request, format=None):
         channel_data = request.data.dict()
 
@@ -244,6 +424,48 @@ class EditChannelView(APIView):
 class DeleteChannelView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Delete channel',
+        description='User can delete a channel',
+        responses={
+            200: OpenApiResponse(
+                description='Channel deleted successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Channel does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='The channel is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Cannot delete current channel',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+        }
+    )
     def delete(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(id=channel_id)

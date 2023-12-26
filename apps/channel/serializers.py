@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from drf_spectacular.utils import extend_schema_field
+
 from apps.channel.models import Channel, ChannelSubscription
 from apps.video.models import Video, VideoView
 from apps.link.models import Link
@@ -16,6 +18,7 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
     def channel_subscribers(self, instance: Channel) -> int:
         return ChannelSubscription.objects.filter(subscribing=instance).count()
 
+    @extend_schema_field(field=LinkListSerializer(many=True))
     def channel_links(self, instance: Channel):
         links = Link.objects.filter(channel=instance).order_by('position')
         return LinkListSerializer(links, many=True).data
@@ -52,7 +55,7 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
 class ChannelListSerializer(serializers.ModelSerializer):
     subscribers = serializers.SerializerMethodField('subscribers_count')
 
-    def subscribers_count(self, instance: Channel):
+    def subscribers_count(self, instance: Channel) -> int:
         return ChannelSubscription.objects.filter(subscribing=instance).count()
 
     class Meta:

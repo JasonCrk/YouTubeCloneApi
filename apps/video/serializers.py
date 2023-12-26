@@ -66,13 +66,13 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
     liked = serializers.SerializerMethodField('video_liked')
     disliked = serializers.SerializerMethodField('video_disliked')
 
-    def video_dislikes(self, instance: Video):
+    def video_dislikes(self, instance: Video) -> int:
         return LikedVideo.objects.filter(video=instance, liked=False).count()
 
-    def video_comments(self, instance: Video):
+    def video_comments(self, instance: Video) -> int:
         return Comment.objects.filter(video=instance).count()
 
-    def video_liked(self, instance: Comment):
+    def video_liked(self, instance: Comment) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:
@@ -84,7 +84,7 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
             liked=True
         ).exists()
 
-    def video_disliked(self, instance: Comment):
+    def video_disliked(self, instance: Comment) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:

@@ -1,0 +1,1516 @@
+openapi: 3.0.3
+info:
+  title: Youtube Clone (API)
+  version: 0.0.0
+paths:
+  /api/auth/jwt/create/:
+    post:
+      operationId: auth_jwt_create_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/auth/jwt/refresh/:
+    post:
+      operationId: auth_jwt_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/jwt/verify/:
+    post:
+      operationId: auth_jwt_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
+  /api/auth/users/:
+    get:
+      operationId: auth_users_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserAccountCreateList'
+          description: ''
+    post:
+      operationId: auth_users_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreatePasswordRetype'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreatePasswordRetype'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreatePasswordRetype'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreatePasswordRetype'
+          description: ''
+  /api/auth/users/{id}/:
+    get:
+      operationId: auth_users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user account.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    put:
+      operationId: auth_users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user account.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    patch:
+      operationId: auth_users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user account.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    delete:
+      operationId: auth_users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user account.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/users/activation/:
+    post:
+      operationId: auth_users_activation_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Activation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Activation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Activation'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activation'
+          description: ''
+  /api/auth/users/me/:
+    get:
+      operationId: auth_users_me_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    put:
+      operationId: auth_users_me_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserAccountCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    patch:
+      operationId: auth_users_me_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserAccountCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountCreate'
+          description: ''
+    delete:
+      operationId: auth_users_me_destroy
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/users/resend_activation/:
+    post:
+      operationId: auth_users_resend_activation_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailReset'
+          description: ''
+  /api/auth/users/reset_email/:
+    post:
+      operationId: auth_users_reset_email_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailReset'
+          description: ''
+  /api/auth/users/reset_email_confirm/:
+    post:
+      operationId: auth_users_reset_email_confirm_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsernameResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UsernameResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UsernameResetConfirm'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameResetConfirm'
+          description: ''
+  /api/auth/users/reset_password/:
+    post:
+      operationId: auth_users_reset_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailReset'
+          description: ''
+  /api/auth/users/reset_password_confirm/:
+    post:
+      operationId: auth_users_reset_password_confirm_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRetype'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRetype'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRetype'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirmRetype'
+          description: ''
+  /api/auth/users/set_email/:
+    post:
+      operationId: auth_users_set_email_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetUsernameRetype'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SetUsernameRetype'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SetUsernameRetype'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetUsernameRetype'
+          description: ''
+  /api/auth/users/set_password/:
+    post:
+      operationId: auth_users_set_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRetype'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRetype'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRetype'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetPasswordRetype'
+          description: ''
+  /api/channels/{channel_id}/delete/:
+    delete:
+      operationId: channels_delete_destroy
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/channels/by-handle/{channel_handle}/:
+    get:
+      operationId: channels_by_handle_retrieve
+      parameters:
+      - in: path
+        name: channel_handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/channels/by-id/{id}:
+    get:
+      operationId: channels_by_id_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this channel.
+        required: true
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelDetails'
+          description: ''
+  /api/channels/create/:
+    post:
+      operationId: channels_create_create
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/channels/edit/:
+    patch:
+      operationId: channels_edit_partial_update
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/channels/search/:
+    get:
+      operationId: channels_search_retrieve
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/channels/subscribe/:
+    post:
+      operationId: channels_subscribe_create
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/channels/subscribed/:
+    get:
+      operationId: channels_subscribed_retrieve
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/channels/switch/:
+    post:
+      operationId: channels_switch_create
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/{comment_id}/create/:
+    post:
+      operationId: comments_create_create_2
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/{comment_id}/delete/:
+    delete:
+      operationId: comments_delete_destroy
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/comments/{comment_id}/edit/:
+    put:
+      operationId: comments_edit_update
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/comment/{comment_id}/:
+    get:
+      operationId: comments_comment_retrieve
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/comments/create/{video_id}/:
+    post:
+      operationId: comments_create_create
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/dislike/:
+    post:
+      operationId: comments_dislike_create
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/like/:
+    post:
+      operationId: comments_like_create
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/comments/video/{video_id}/:
+    get:
+      operationId: comments_video_retrieve
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/links/{link_id}/delete/:
+    delete:
+      operationId: links_delete_destroy
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - links
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/links/{link_id}/edit/:
+    put:
+      operationId: links_edit_update
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - links
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/links/channel/{channel_id}/:
+    get:
+      operationId: links_channel_retrieve
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - links
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/links/create/:
+    post:
+      operationId: links_create_create
+      tags:
+      - links
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/links/reposition/:
+    post:
+      operationId: links_reposition_create
+      tags:
+      - links
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/{playlist_id}/:
+    get:
+      operationId: playlists_retrieve
+      parameters:
+      - in: path
+        name: playlist_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/{playlist_id}/delete/:
+    delete:
+      operationId: playlists_delete_destroy
+      parameters:
+      - in: path
+        name: playlist_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/playlists/{playlist_id}/edit/:
+    patch:
+      operationId: playlists_edit_partial_update
+      parameters:
+      - in: path
+        name: playlist_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/{playlist_id}/save-video/:
+    post:
+      operationId: playlists_save_video_create
+      parameters:
+      - in: path
+        name: playlist_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/{playlist_id}/videos/:
+    get:
+      operationId: playlists_videos_retrieve
+      parameters:
+      - in: path
+        name: playlist_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/channel/{channel_id}/:
+    get:
+      operationId: playlists_channel_retrieve
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/create/:
+    post:
+      operationId: playlists_create_create
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/own/:
+    get:
+      operationId: playlists_own_retrieve
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/playlists/video/{playlist_video_id}/remove/:
+    delete:
+      operationId: playlists_video_remove_destroy
+      parameters:
+      - in: path
+        name: playlist_video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - playlists
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/videos/{video_id}/:
+    get:
+      operationId: videos_retrieve
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/videos/{video_id}/delete/:
+    delete:
+      operationId: videos_delete_destroy
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/videos/{video_id}/edit/:
+    patch:
+      operationId: videos_edit_partial_update
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/videos/{video_id}/viewed/:
+    post:
+      operationId: videos_viewed_create
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/videos/channel/{channel_id}/:
+    get:
+      operationId: videos_channel_retrieve
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/videos/create/:
+    post:
+      operationId: videos_create_create
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/videos/dislike/:
+    post:
+      operationId: videos_dislike_create
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/videos/like/:
+    post:
+      operationId: videos_like_create
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/videos/search/:
+    get:
+      operationId: videos_search_retrieve
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Activation:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+      required:
+      - token
+      - uid
+    ChannelDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Channel name
+          maxLength: 25
+        handle:
+          type: string
+          maxLength: 28
+        description:
+          type: string
+          nullable: true
+        picture_url:
+          type: string
+          format: uri
+          nullable: true
+          title: Avatar image URL
+          maxLength: 200
+        banner_url:
+          type: string
+          format: uri
+          nullable: true
+          title: Banner image URL
+          maxLength: 200
+        joined:
+          type: string
+          format: date-time
+          readOnly: true
+        subscribers:
+          type: integer
+          readOnly: true
+        links:
+          type: string
+          readOnly: true
+        total_videos:
+          type: integer
+          readOnly: true
+        total_views:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - joined
+      - links
+      - name
+      - subscribers
+      - total_videos
+      - total_views
+    CurrentChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        picture_url:
+          type: string
+          format: uri
+          nullable: true
+          title: Avatar image URL
+          maxLength: 200
+        name:
+          type: string
+          title: Channel name
+          maxLength: 25
+        handle:
+          type: string
+          maxLength: 28
+      required:
+      - id
+      - name
+    PaginatedUserAccountCreateList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserAccountCreate'
+    PasswordResetConfirmRetype:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+        new_password:
+          type: string
+        re_new_password:
+          type: string
+      required:
+      - new_password
+      - re_new_password
+      - token
+      - uid
+    PatchedUserAccountCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: User e-mail
+          maxLength: 150
+        username:
+          type: string
+          maxLength: 25
+        current_channel:
+          $ref: '#/components/schemas/CurrentChannel'
+    SendEmailReset:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    SetPasswordRetype:
+      type: object
+      properties:
+        new_password:
+          type: string
+        re_new_password:
+          type: string
+        current_password:
+          type: string
+      required:
+      - current_password
+      - new_password
+      - re_new_password
+    SetUsernameRetype:
+      type: object
+      properties:
+        current_password:
+          type: string
+        new_email:
+          type: string
+          format: email
+          title: User e-mail
+          maxLength: 150
+        re_new_email:
+          type: string
+      required:
+      - current_password
+      - new_email
+      - re_new_email
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenVerify:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+      required:
+      - token
+    UserAccountCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: User e-mail
+          maxLength: 150
+        username:
+          type: string
+          maxLength: 25
+        current_channel:
+          $ref: '#/components/schemas/CurrentChannel'
+      required:
+      - current_channel
+      - email
+      - id
+      - username
+    UserCreatePasswordRetype:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 25
+        first_name:
+          type: string
+          title: User first name
+          maxLength: 25
+        last_name:
+          type: string
+          title: User last name
+          maxLength: 25
+        email:
+          type: string
+          format: email
+          title: User e-mail
+          maxLength: 150
+        id:
+          type: integer
+          readOnly: true
+        password:
+          type: string
+          writeOnly: true
+        re_password:
+          type: string
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      - password
+      - re_password
+      - username
+    UsernameResetConfirm:
+      type: object
+      properties:
+        new_email:
+          type: string
+          format: email
+          title: User e-mail
+          maxLength: 150
+      required:
+      - new_email
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -8,7 +8,7 @@ from apps.video.serializers import VideoListSimpleSerializer
 class PlaylistDetailsSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField('selected_video_thumbnail')
 
-    def selected_video_thumbnail(self, instance: Playlist):
+    def selected_video_thumbnail(self, instance: Playlist) -> str:
         return instance.video_thumbnail.thumbnail if instance.video_thumbnail is not None else None
 
     class Meta:
@@ -41,17 +41,17 @@ class PlaylistListSerializer(serializers.ModelSerializer):
     first_video_id = serializers.SerializerMethodField('playlist_first_video_id')
     number_videos = serializers.SerializerMethodField('playlist_number_videos')
 
-    def selected_video_thumbnail(self, instance: Playlist):
+    def selected_video_thumbnail(self, instance: Playlist) -> str:
         if instance.video_thumbnail is None:
             return None
 
         return instance.video_thumbnail.video.thumbnail
 
-    def playlist_first_video_id(self, instance: Playlist):
+    def playlist_first_video_id(self, instance: Playlist) -> int:
         first_playlist_video = PlaylistVideo.objects.filter(playlist=instance).first()
         return first_playlist_video.pk if first_playlist_video is not None else None
 
-    def playlist_number_videos(self, instance: Playlist):
+    def playlist_number_videos(self, instance: Playlist) -> int:
         return PlaylistVideo.objects.filter(playlist=instance).count()
 
     class Meta:

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
     'djoser',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -78,8 +79,8 @@ DJOSER = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8080',
-    'http://127.0.0.1:8000'
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
 ]
 
 CORS_ALLOW_METHODS = (
@@ -92,6 +93,7 @@ CORS_ALLOW_METHODS = (
 )
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny'
     ],
@@ -101,6 +103,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Youtube Clone (API)',
+    'SCHEMA_GENERATOR_CLASS': 'drf_spectacular.generators.SchemaGenerator',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'DEFAULT_AUTO_FIELD_CLASS': 'rest_framework.fields.AutoField',
+    'DEFAULT_LINKS_OVERWRITE': False,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'VERSION': '1.0.0'
 }
 
 SIMPLE_JWT = {

@@ -20,7 +20,7 @@ cloudinary===1.33.0
 azure-core==1.27.1
 azure-storage-blob==12.16.0
 
-# HASH
+# ENCRYPT
 argon2-cffi==21.3.0
 
 # IMAGES
@@ -29,3 +29,6 @@ Pillow==10.0.0
 # TESTING
 factory-boy===3.3.0
 coverage===7.2.7
+
+# API DOCUMENTATION
+drf-spectacular===0.26.4

@@ -14,9 +14,14 @@ urlpatterns = [
         name='comments_of_comment'
     ),
     path(
-        'create/<int:video_id>/',
+        'video/<int:video_id>/create',
         views.CreateVideoCommentView.as_view(),
         name='create_video_comment'
+    ),
+    path(
+        'comment/<int:comment_id>/create/',
+        views.CreateCommentForCommentView.as_view(),
+        name='create_comment_for_comment'
     ),
     path(
         '<int:comment_id>/like/',
@@ -27,11 +32,6 @@ urlpatterns = [
         '<int:comment_id>/dislike/',
         views.DislikeCommentView.as_view(),
         name='dislike_comment'
-    ),
-    path(
-        '<int:comment_id>/create/',
-        views.CreateCommentForCommentView.as_view(),
-        name='create_comment_for_comment'
     ),
     path(
         '<int:comment_id>/edit/',

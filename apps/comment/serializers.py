@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.types import OpenApiTypes
+
 from apps.comment.models import Comment, LikedComment
 
 from apps.channel.serializers import CurrentChannelSerializer
@@ -11,10 +14,10 @@ class CommentListSerializer(serializers.ModelSerializer):
     liked = serializers.SerializerMethodField('comment_liked')
     disliked = serializers.SerializerMethodField('comment_disliked')
 
-    def comment_dislikes(self, instance: Comment):
+    def comment_dislikes(self, instance: Comment) -> int:
         return LikedComment.objects.filter(comment=instance, liked=False).count()
 
-    def comment_liked(self, instance: Comment):
+    def comment_liked(self, instance: Comment) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:
@@ -26,7 +29,7 @@ class CommentListSerializer(serializers.ModelSerializer):
             liked=True
         ).exists()
 
-    def comment_disliked(self, instance: Comment):
+    def comment_disliked(self, instance: Comment) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:

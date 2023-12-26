@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
+
 from apps.playlist.models import Playlist, PlaylistVideo
 from apps.video.models import Video
 from apps.channel.models import Channel
@@ -17,6 +19,35 @@ from apps.playlist.choices import Visibility
 
 
 class RetrievePlaylistDetailsView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @extend_schema(
+        summary='Retrieve playlist details',
+        description='Get the details of a playlist by ID',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.PlaylistDetailsSerializer
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description="You can't view this playlist, because the playlist is private",
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, playlist_id, format=None):
         try:
             playlist = Playlist.objects.get(id=playlist_id)
@@ -39,6 +70,34 @@ class RetrievePlaylistDetailsView(APIView):
 class RetrieveVideosFromAPlaylistView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @extend_schema(
+        summary='Retrieve playlist videos',
+        description='Get the videos from a playlist',
+        responses={
+            200: OpenApiResponse(
+                description='Videos from a playlist',
+                response=serializers.PlaylistVideoListSerializer(many=True)
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description="You can't view this playlist, because the playlist is private",
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, playlist_id, format=None):
         try:
             playlist = Playlist.objects.get(id=playlist_id)
@@ -68,6 +127,25 @@ class RetrieveVideosFromAPlaylistView(APIView):
 class RetrieveChannelPlaylistsView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @extend_schema(
+        summary='Retrieve channel playlists',
+        description='Get the playlists of a channel',
+        responses={
+            200: OpenApiResponse(
+                description='Playlists from a channel',
+                response=serializers.PlaylistListSerializer(many=True)
+            ),
+            404: OpenApiResponse(
+                description='Channel does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+        }
+    )
     def get(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(id=channel_id)
@@ -105,6 +183,13 @@ class RetrieveChannelPlaylistsView(APIView):
 class RetrieveOwnPlaylistsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Retrieve own playlists',
+        description='Get the own playlists',
+        responses={
+            200: serializers.PlaylistListSimpleSerializer
+        }
+    )
     def get(self, request, format=None):
         own_playlists = Playlist.objects.filter(channel=request.user.current_channel)
 
@@ -120,10 +205,39 @@ class RetrieveOwnPlaylistsView(APIView):
 
 class CreatePlaylistView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.CreatePlaylistSerializer
 
+    @extend_schema(
+        summary='Create playlist',
+        description='Create a new playlist',
+        request=inline_serializer(
+            'CreatePlaylist',
+            fields={
+                'name': serializers.serializers.CharField(),
+                'visibility': serializers.serializers.ChoiceField(choices=Visibility.choices)
+            }
+        ),
+        responses={
+            201: serializers.PlaylistListSimpleSerializer,
+            400: OpenApiResponse(
+                description='The data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'name': {'type': 'array', 'items': {'type': 'string'}},
+                                'visibility': {'type': 'array', 'items': {'type': 'string'}},
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def post(self, request, format=None):
         data = request.data
-
         data['channel'] = request.user.current_channel.pk
 
         new_playlist = serializers.CreatePlaylistSerializer(data=data)
@@ -144,7 +258,56 @@ class CreatePlaylistView(APIView):
 
 class SaveVideoToPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.PlaylistListSimpleSerializer
 
+    @extend_schema(
+        summary='Save video to playlist',
+        description='Save a video to a playlist',
+        request=inline_serializer(
+            'SaveVideoToPlaylist',
+            fields={
+                'video_id': serializers.serializers.IntegerField()
+            }
+        ),
+        responses={
+            201: OpenApiResponse(
+                description='Video saved successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Playlist or video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='The playlist is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Video ID is not a number or the video is already in the playlist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request, playlist_id, format=None):
         try:
             playlist = Playlist.objects.get(id=playlist_id)
@@ -160,7 +323,7 @@ class SaveVideoToPlaylistView(APIView):
 
         try:
             video_id = int(request.data.get('video_id'))
-        except (ValueError, TypeError):
+        except:
             return Response({
                 'message': 'The video ID must be a number'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -192,7 +355,58 @@ class SaveVideoToPlaylistView(APIView):
 
 class EditPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UpdatePlaylistSerializer
 
+    @extend_schema(
+        summary='Edit playlist',
+        description='Edit a playlist',
+        responses={
+            200: OpenApiResponse(
+                description='Playlist updated successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='The data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'name': {'type': 'array', 'items': {'type': 'string'}},
+                                'visibility': {'type': 'array', 'items': {'type': 'string'}},
+                                'video_thumbnail': {'type': 'array', 'items': {'type': 'string'}},
+                                'description': {'type': 'array', 'items': {'type': 'string'}},
+                            }
+                        }
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='Playlist is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def patch(self, request, playlist_id, format=None):
         try:
             playlist = Playlist.objects.get(id=playlist_id)
@@ -227,6 +441,39 @@ class EditPlaylistView(APIView):
 class DeletePlaylistView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Delete playlist',
+        description='Delete a playlist',
+        responses={
+            200: OpenApiResponse(
+                description='Playlist deleted successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='Playlist is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def delete(self, request, playlist_id, format=None):
         try:
             playlist = Playlist.objects.select_related('channel').get(id=playlist_id)
@@ -250,6 +497,39 @@ class DeletePlaylistView(APIView):
 class RemoveVideoFromPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Remove video from playlist',
+        description='Remove a video from a playlist',
+        responses={
+            200: OpenApiResponse(
+                description='Video removed successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='Playlist is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def delete(self, request, playlist_video_id, format=None):
         try:
             playlist_video: PlaylistVideo = PlaylistVideo.objects\

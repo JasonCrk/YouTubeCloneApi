@@ -8,6 +8,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import FormParser, MultiPartParser
 
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
 from apps.video.models import Video, LikedVideo, VideoView
 from apps.channel.models import Channel
 
@@ -19,6 +22,25 @@ from youtube_clone.enums import SearchSortOptions, SearchUploadDate, VideoSortOp
 
 
 class RetrieveChannelVideosView(APIView):
+    @extend_schema(
+        summary='Retrieve channel videos',
+        description='Get videos from a channel',
+        responses={
+            200: OpenApiResponse(
+                description='Videos from a channel',
+                response=serializers.VideoListSimpleSerializer(many=True)
+            ),
+            404: OpenApiResponse(
+                description='Channel does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, channel_id, format=None):
         try:
             channel = Channel.objects.get(pk=channel_id)
@@ -53,6 +75,25 @@ class RetrieveChannelVideosView(APIView):
 class RetrieveVideoDetailsView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @extend_schema(
+        summary='Retrieve video details',
+        description='Get the details of a video by ID',
+        responses={
+            200: OpenApiResponse(
+                description='Video details',
+                response=serializers.VideoDetailsSerializer
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, video_id, format=None):
         try:
             video = Video.objects.get(pk=video_id)
@@ -73,6 +114,60 @@ class RetrieveVideoDetailsView(generics.RetrieveAPIView):
 
 
 class SearchVideosView(APIView):
+    @extend_schema(
+        summary='Search videos',
+        description='Search videos by video title, in addition to having options to sort by: publication date, views and likes, and filter by dates, such as: last minute, today, this week, this month and this year',
+        parameters=[
+            OpenApiParameter(
+                'search_query',
+                type=OpenApiTypes.STR,
+                allow_blank=False,
+                required=True,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                'sort_by',
+                type=OpenApiTypes.STR,
+                allow_blank=False,
+                required=True,
+                location=OpenApiParameter.QUERY,
+                enum=[
+                    SearchSortOptions.RATING.value,
+                    SearchSortOptions.VIEW_COUNT.value,
+                    SearchSortOptions.UPLOAD_DATE.value
+                ]
+            ),
+            OpenApiParameter(
+                'upload_date',
+                type=OpenApiTypes.STR,
+                allow_blank=False,
+                required=True,
+                location=OpenApiParameter.QUERY,
+                enum=[
+                    SearchUploadDate.LAST_HOUR.value,
+                    SearchUploadDate.TODAY.value,
+                    SearchUploadDate.THIS_WEEK.value,
+                    SearchUploadDate.THIS_MONTH.value,
+                    SearchUploadDate.THIS_YEAR.value
+                ]
+            )
+        ],
+        responses={
+            200: OpenApiResponse(
+                description='Searched videos',
+                response=serializers.VideoListSerializer(many=True)
+            ),
+            400: OpenApiResponse(
+                description='The search query is required',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def get(self, request, format=None):
         search_query = request.query_params.get('search_query')
         sort_by = request.query_params.get('sort_by')
@@ -137,10 +232,51 @@ class SearchVideosView(APIView):
 class CreateVideoView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser]
+    serializer_class = serializers.CreateVideoSerializer
 
+    @extend_schema(
+        summary='Create video',
+        description='Create a new video',
+        request=inline_serializer(
+            'CreateVideo',
+            fields={
+                'video': serializers.serializers.FileField(),
+                'thumbnail': serializers.serializers.ImageField(),
+                'title': serializers.serializers.CharField(),
+                'description': serializers.serializers.CharField(allow_blank=True, required=False)
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                description='Video uploaded successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='The data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'title': {'type': 'array', 'items': {'type': 'string'}},
+                                'description': {'type': 'array', 'items': {'type': 'string'}},
+                                'video': {'type': 'array', 'items': {'type': 'string'}},
+                                'thumbnail': {'type': 'array', 'items': {'type': 'string'}}
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request, format=None):
         video_data = request.data.dict()
-
         video_data['channel'] = request.user.current_channel.pk
 
         new_video = serializers.CreateVideoSerializer(data=video_data)
@@ -151,7 +287,10 @@ class CreateVideoView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            new_video.validated_data['thumbnail'] = CloudinaryUploader.upload_image(video_data.get('thumbnail'), 'thumbnails')
+            new_video.validated_data['thumbnail'] = CloudinaryUploader.upload_image(
+                video_data.get('thumbnail'),
+                'thumbnails'
+            )
         except:
             return Response({
                 'message': 'Failed to upload video thumbnail, please try again later'
@@ -172,6 +311,27 @@ class CreateVideoView(APIView):
 
 
 class AddVisitToVideoView(APIView):
+    serializer_class = VideoView
+
+    @extend_schema(
+        summary='Add visit to video',
+        description='Increase the number of views of a video by one',
+        request=None,
+        responses={
+            204: OpenApiResponse(
+                description='View added',
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request, video_id, format=None):
         try:
             video = Video.objects.get(pk=video_id)
@@ -185,26 +345,48 @@ class AddVisitToVideoView(APIView):
                 channel=request.user.current_channel,
                 video=video
             )
-
-            if not created:
-                video_view.count += 1
-                video_view.save()
         else:
             video_view, created = VideoView.objects.get_or_create(
                 channel=None,
                 video=video
             )
 
-            if not created:
-                video_view.count += 1
-                video_view.save()
+        if not created:
+            video_view.count += 1
+            video_view.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LikeVideoView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = LikedVideo
 
+    @extend_schema(
+        summary='Like video',
+        description='Add or remove a like from a video',
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                description='Like added or like removed successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def post(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
@@ -242,7 +424,33 @@ class LikeVideoView(APIView):
 
 class DislikeVideoView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = LikedVideo
 
+    @extend_schema(
+        summary='Dislike video',
+        description='Add or remove a dislike from a video',
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                description='Dislike added or dislike removed successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def post(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
@@ -281,7 +489,57 @@ class DislikeVideoView(APIView):
 class EditVideoView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [FormParser, MultiPartParser]
+    serializer_class = serializers.UpdateVideoSerializer
 
+    @extend_schema(
+        summary='Edit video',
+        description='Edit a video',
+        responses={
+            200: OpenApiResponse(
+                description='Video updated successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='Video is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='The data is invalid',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'errors': {
+                            'type': 'object',
+                            'properties': {
+                                'title': {'type': 'array', 'items': {'type': 'string'}},
+                                'description': {'type': 'array', 'items': {'type': 'string'}},
+                                'thumbnail': {'type': 'array', 'items': {'type': 'string'}}
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+    )
     def patch(self, request, video_id, format=None):
         data = request.data.dict()
 
@@ -327,6 +585,39 @@ class EditVideoView(APIView):
 class DeleteVideoView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary='Delete video',
+        description='Delete a video',
+        responses={
+            200: OpenApiResponse(
+                description='Video deleted successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='Video is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
     def delete(self, request, video_id, format=None):
         try:
             video = Video.objects.get(id=video_id)
