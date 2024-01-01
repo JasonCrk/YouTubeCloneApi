@@ -81,6 +81,7 @@ class ChannelSimpleRepresentationSerializer(serializers.ModelSerializer):
         model = Channel
         fields = (
             'id',
+            'handle',
             'picture_url',
             'name'
         )
