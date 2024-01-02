@@ -28,7 +28,7 @@ class RetrieveTrendingVideosView(APIView):
         responses={
             200: OpenApiResponse(
                 description='Trending videos',
-                response=serializers.VideoListSerializer(many=True)
+                response=serializers.VideoListSimpleSerializer(many=True)
             )
         }
     )
@@ -42,7 +42,7 @@ class RetrieveTrendingVideosView(APIView):
             total_comments=Count('comment_video')
         ).order_by('-num_likes', '-total_views', '-total_comments')
 
-        serialized_trending_videos = serializers.VideoListSerializer(trending_videos, many=True)
+        serialized_trending_videos = serializers.VideoListSimpleSerializer(trending_videos, many=True)
 
         return Response({
             'data': serialized_trending_videos.data

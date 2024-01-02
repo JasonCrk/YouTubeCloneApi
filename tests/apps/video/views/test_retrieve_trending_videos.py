@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.video.models import Video
-from apps.video.serializers import VideoListSerializer
+from apps.video.serializers import VideoListSimpleSerializer
 
 from tests.factories.video import VideoFactory, VideoViewFactory, LikeVideoFactory
 from tests.factories.comment import CommentFactory
@@ -31,7 +31,7 @@ class TestRetrieveTrendingVideos(APITestCase):
     def test_should_return_a_list_of_serialized_videos(self):
         response = self.client.get(self.url)
 
-        serialized_top_trending_video = VideoListSerializer(self.top_trending_video)
+        serialized_top_trending_video = VideoListSimpleSerializer(self.top_trending_video)
 
         self.assertIn(serialized_top_trending_video.data, response.data.get('data'))
 
@@ -41,8 +41,6 @@ class TestRetrieveTrendingVideos(APITestCase):
 
     def test_should_return_a_list_of_videos_sorted_by_trend(self):
         response = self.client.get(self.url)
-
-        print(response.data.get('data'))
 
         self.assertEqual(response.data.get('data')[0].get('id'), self.top_trending_video.pk)
         self.assertEqual(response.data.get('data')[1].get('id'), self.second_top_trending_video.pk)
