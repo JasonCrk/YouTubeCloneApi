@@ -21,6 +21,34 @@ from youtube_clone.utils.storage import CloudinaryUploader
 from youtube_clone.enums import SearchSortOptions, SearchUploadDate, VideoSortOptions
 
 
+class RetrieveTrendingVideosView(APIView):
+    @extend_schema(
+        summary='Retrieve trending videos',
+        description='Get all videos sorted by likes, views and comments sorted from highest to lowest',
+        responses={
+            200: OpenApiResponse(
+                description='Trending videos',
+                response=serializers.VideoListSerializer(many=True)
+            )
+        }
+    )
+    def get(self, request, format=None):
+        trending_videos = Video.objects.annotate(
+            total_views=Sum('videoview__count', default=0),
+            num_likes=Count(Case(
+                When(likedvideo__liked=True, then=1),
+                output_field=IntegerField()
+            )),
+            total_comments=Count('comment_video')
+        ).order_by('-num_likes', '-total_views', '-total_comments')
+
+        serialized_trending_videos = serializers.VideoListSerializer(trending_videos, many=True)
+
+        return Response({
+            'data': serialized_trending_videos.data
+        }, status=status.HTTP_200_OK)
+
+
 class RetrieveChannelVideosView(APIView):
     @extend_schema(
         summary='Retrieve channel videos',

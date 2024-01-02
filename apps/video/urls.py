@@ -5,6 +5,7 @@ from apps.video import views
 urlpatterns = [
     path('search/', views.SearchVideosView.as_view(), name='search_videos'),
     path('create/', views.CreateVideoView.as_view(), name='upload_video'),
+    path('trending/', views.RetrieveTrendingVideosView.as_view(), name='trending_videos'),
     path('channel/<int:channel_id>/', views.RetrieveChannelVideosView.as_view(), name='channel_videos'),
     path('<int:video_id>/', views.RetrieveVideoDetailsView.as_view(), name='video_details'),
     path('<int:video_id>/like/', views.LikeVideoView.as_view(), name='like_video'),
