@@ -86,6 +86,13 @@ class ChannelSimpleRepresentationSerializer(serializers.ModelSerializer):
             'name'
         )
 
+    def to_representation(self, instance: Channel):
+        representation = super().to_representation(instance)
+
+        representation['handle'] = '@'+instance.handle
+
+        return representation
+
 
 class CreateChannelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -112,6 +119,13 @@ class UpdateChannelSerializer(serializers.ModelSerializer):
             'picture',
         )
 
+    def to_representation(self, instance: Channel):
+        representation = super().to_representation(instance)
+
+        representation['handle'] = '@'+instance.handle
+
+        return representation
+
 
 class CurrentChannelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -122,3 +136,10 @@ class CurrentChannelSerializer(serializers.ModelSerializer):
             'name',
             'handle',
         )
+
+    def to_representation(self, instance: Channel):
+        representation = super().to_representation(instance)
+
+        representation['handle'] = '@'+instance.handle
+
+        return representation
