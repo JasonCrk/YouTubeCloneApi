@@ -18,6 +18,28 @@ from youtube_clone.utils.storage import CloudinaryUploader
 from youtube_clone.enums import SearchSortOptions
 
 
+class RetrieveOwnChannelsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary='Retrieve own channel from authenticated user',
+        description='Get a list of channels that belong to the authenticated user',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.ChannelListSerializer(many=True)
+            )
+        }
+    )
+    def get(self, request, format=None):
+        own_channels = Channel.objects.filter(user=request.user)
+
+        serialized_own_channels = serializers.ChannelListSerializer(own_channels, many=True)
+
+        return Response({
+            'data': serialized_own_channels.data
+        }, status=status.HTTP_200_OK)
+
+
 class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
     queryset = Channel.objects.all()
     serializer_class = serializers.ChannelDetailsSerializer

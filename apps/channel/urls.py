@@ -4,6 +4,11 @@ from apps.channel import views
 
 urlpatterns = [
     path(
+        'own/',
+        views.RetrieveOwnChannelsView.as_view(),
+        name='retrieve_own_channels'
+    ),
+    path(
         'subscribed/',
         views.RetrieveSubscribedChannelsView.as_view(),
         name='subscribed_channels'
