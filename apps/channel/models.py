@@ -28,6 +28,7 @@ class Channel(models.Model):
     handle = models.CharField(blank=True, unique=True, max_length=28)
     contact_email = models.EmailField(verbose_name='Contact email', null=True, blank=True)
     subscriptions = models.ManyToManyField('self', through='ChannelSubscription')
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
     objects = ChannelManager()
 
