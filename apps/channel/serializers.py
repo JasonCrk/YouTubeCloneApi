@@ -94,6 +94,24 @@ class ChannelSimpleRepresentationSerializer(serializers.ModelSerializer):
         return representation
 
 
+class CurrentChannelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Channel
+        fields = (
+            'id',
+            'picture_url',
+            'name',
+            'handle',
+        )
+
+    def to_representation(self, instance: Channel):
+        representation = super().to_representation(instance)
+
+        representation['handle'] = '@'+instance.handle
+
+        return representation
+
+
 class CreateChannelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Channel
@@ -118,28 +136,3 @@ class UpdateChannelSerializer(serializers.ModelSerializer):
             'banner',
             'picture',
         )
-
-    def to_representation(self, instance: Channel):
-        representation = super().to_representation(instance)
-
-        representation['handle'] = '@'+instance.handle
-
-        return representation
-
-
-class CurrentChannelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Channel
-        fields = (
-            'id',
-            'picture_url',
-            'name',
-            'handle',
-        )
-
-    def to_representation(self, instance: Channel):
-        representation = super().to_representation(instance)
-
-        representation['handle'] = '@'+instance.handle
-
-        return representation
