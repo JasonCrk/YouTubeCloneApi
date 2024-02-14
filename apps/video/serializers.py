@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.video.models import Video, VideoView, LikedVideo
 from apps.comment.models import Comment
+from apps.channel.models import ChannelSubscription
 
 from apps.channel.serializers import ChannelSimpleRepresentationSerializer, ChannelListSerializer
 
@@ -72,7 +73,7 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
     def video_comments(self, instance: Video) -> int:
         return Comment.objects.filter(video=instance).count()
 
-    def video_liked(self, instance: Comment) -> bool:
+    def video_liked(self, instance: Video) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:
@@ -84,7 +85,7 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
             liked=True
         ).exists()
 
-    def video_disliked(self, instance: Comment) -> bool:
+    def video_disliked(self, instance: Video) -> bool:
         user = self.context['request'].user
 
         if not user.is_authenticated:
@@ -113,7 +114,7 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
             'disliked',
         )
 
-    def to_representation(self, instance):
+    def to_representation(self, instance: Video):
         representation = super().to_representation(instance)
 
         video_view_list = VideoView.objects.filter(video=instance).values_list('count', flat=True)
@@ -121,6 +122,16 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
 
         representation['views'] = total_video_views
         representation['likes'] = LikedVideo.objects.filter(video=instance, liked=True).count()
+
+        user = self.context.get('request').user
+
+        representation['channel']['subscribed'] = False
+
+        if user != None and user.is_authenticated:
+            representation['channel']['subscribed'] = ChannelSubscription.objects.filter(
+                subscriber=user.current_channel,
+                subscribing=instance.channel
+            ).exists()
 
         return representation
 
