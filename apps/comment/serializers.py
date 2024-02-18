@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema_field
-from drf_spectacular.types import OpenApiTypes
-
 from apps.comment.models import Comment, LikedComment
 
 from apps.channel.serializers import CurrentChannelSerializer
@@ -13,12 +10,18 @@ class CommentListSerializer(serializers.ModelSerializer):
     dislikes = serializers.SerializerMethodField('comment_dislikes')
     liked = serializers.SerializerMethodField('comment_liked')
     disliked = serializers.SerializerMethodField('comment_disliked')
+    comments = serializers.SerializerMethodField('comment_comments')
 
     def comment_dislikes(self, instance: Comment) -> int:
         return LikedComment.objects.filter(comment=instance, liked=False).count()
 
     def comment_liked(self, instance: Comment) -> bool:
-        user = self.context['request'].user
+        request = self.context.get('request')
+
+        if request is None:
+            return False
+
+        user = request.user
 
         if not user.is_authenticated:
             return False
@@ -30,7 +33,12 @@ class CommentListSerializer(serializers.ModelSerializer):
         ).exists()
 
     def comment_disliked(self, instance: Comment) -> bool:
-        user = self.context['request'].user
+        request = self.context.get('request')
+
+        if request is None:
+            return False
+
+        user = request.user
 
         if not user.is_authenticated:
             return False
@@ -40,6 +48,11 @@ class CommentListSerializer(serializers.ModelSerializer):
             channel=user.current_channel,
             liked=False
         ).exists()
+
+    def comment_comments(self, instance: Comment) -> int:
+        return Comment.objects.filter(
+            comment=instance
+        ).count()
 
     class Meta:
         model = Comment
@@ -52,7 +65,8 @@ class CommentListSerializer(serializers.ModelSerializer):
             'likes',
             'dislikes',
             'liked',
-            'disliked'
+            'disliked',
+            'comments'
         )
 
     def to_representation(self, instance: Comment):
