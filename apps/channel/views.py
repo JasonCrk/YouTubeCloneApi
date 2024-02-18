@@ -1,10 +1,10 @@
 from django.db.models import Q, Subquery, OuterRef, Sum, Count
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
@@ -40,20 +40,42 @@ class RetrieveOwnChannelsView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class RetrieveChannelDetailsByIdView(generics.RetrieveAPIView):
-    queryset = Channel.objects.all()
-    serializer_class = serializers.ChannelDetailsSerializer
+class RetrieveChannelDetailsByIdView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def handle_exception(self, exc):
-        if isinstance(exc, Http404):
+    @extend_schema(
+        summary='Retrieve channel details by channel id',
+        description='Get the detail of a channel by its id',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.ChannelDetailsSerializer
+            ),
+            404: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, channel_id, format=None):
+        try:
+            channel = Channel.objects.get(pk=channel_id)
+        except Channel.DoesNotExist:
             return Response({
                 'message': 'The channel does not exists'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        return super().handle_exception(exc)
+        serialized_channel = serializers.ChannelDetailsSerializer(channel)
+
+        return Response(serialized_channel.data, status=status.HTTP_200_OK)
 
 
 class RetrieveChannelDetailsByHandleView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @extend_schema(
         summary='Retrieve channel details by handle',
         description='Get the detail of a channel by its handle',

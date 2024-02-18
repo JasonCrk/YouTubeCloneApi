@@ -13,7 +13,7 @@ from apps.channel.serializers import ChannelDetailsSerializer
 class TestChannelDetailsById(APITestCase):
     def setUp(self):
         self.channel: Channel = ChannelFactory.create()
-        self.url = reverse('channel_details_by_id', kwargs={'pk': self.channel.pk})
+        self.url = reverse('channel_details_by_id', kwargs={'channel_id': self.channel.pk})
 
     def test_returns_the_serialized_channel(self):
         """

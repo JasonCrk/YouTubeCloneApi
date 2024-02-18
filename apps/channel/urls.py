@@ -29,7 +29,7 @@ urlpatterns = [
         name='edit_channel'
     ),
     path(
-        'by-id/<pk>/',
+        'by-id/<int:channel_id>/',
         views.RetrieveChannelDetailsByIdView.as_view(),
         name='channel_details_by_id'
     ),
