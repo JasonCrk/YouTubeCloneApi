@@ -14,6 +14,7 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
     links = serializers.SerializerMethodField('channel_links')
     total_videos = serializers.SerializerMethodField('channel_total_videos')
     total_views = serializers.SerializerMethodField('channel_total_views')
+    subscribed = serializers.SerializerMethodField('channel_subscribed')
 
     def channel_subscribers(self, instance: Channel) -> int:
         return ChannelSubscription.objects.filter(subscribing=instance).count()
@@ -30,6 +31,16 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
         list_video_views = VideoView.objects.filter(video__channel=instance).values_list('count', flat=True)
         return sum(list_video_views)
 
+    def channel_subscribed(self, instance: Channel) -> int:
+        user = self.context.get('request').user
+
+        if user is None or not user.is_authenticated: return False
+
+        return ChannelSubscription.objects.filter(
+            subscriber=user.current_channel,
+            subscribing=instance
+        ).exists()
+
     class Meta:
         model = Channel
         fields = (
@@ -44,6 +55,7 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
             'links',
             'total_videos',
             'total_views',
+            'subscribed',
         )
 
     def to_representation(self, instance: Channel):
@@ -65,7 +77,7 @@ class ChannelListSerializer(serializers.ModelSerializer):
             'name',
             'handle',
             'picture_url',
-            'subscribers'
+            'subscribers',
         )
 
     def to_representation(self, instance: Channel):
@@ -83,7 +95,7 @@ class ChannelSimpleRepresentationSerializer(serializers.ModelSerializer):
             'id',
             'handle',
             'picture_url',
-            'name'
+            'name',
         )
 
     def to_representation(self, instance: Channel):
@@ -117,7 +129,7 @@ class CreateChannelSerializer(serializers.ModelSerializer):
         model = Channel
         fields = (
             'name',
-            'user'
+            'user',
         )
 
 

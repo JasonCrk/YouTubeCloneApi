@@ -68,7 +68,7 @@ class RetrieveChannelDetailsByIdView(APIView):
                 'message': 'The channel does not exists'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        serialized_channel = serializers.ChannelDetailsSerializer(channel)
+        serialized_channel = serializers.ChannelDetailsSerializer(channel, context={'request': request})
 
         return Response(serialized_channel.data, status=status.HTTP_200_OK)
 
@@ -101,7 +101,7 @@ class RetrieveChannelDetailsByHandleView(APIView):
                 'message': 'The channel does not exists'
             }, status=status.HTTP_404_NOT_FOUND)
 
-        serialized_channel = serializers.ChannelDetailsSerializer(channel)
+        serialized_channel = serializers.ChannelDetailsSerializer(channel, context={'request': request})
 
         return Response(serialized_channel.data, status=status.HTTP_200_OK)
 
