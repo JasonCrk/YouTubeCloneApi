@@ -32,7 +32,11 @@ class ChannelDetailsSerializer(serializers.ModelSerializer):
         return sum(list_video_views)
 
     def channel_subscribed(self, instance: Channel) -> int:
-        user = self.context.get('request').user
+        request = self.context.get('request')
+
+        if request == None: return False
+
+        user = request.user
 
         if user is None or not user.is_authenticated: return False
 
