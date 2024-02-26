@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db.models import Q, Count, Sum, Case, When, IntegerField
 
 from rest_framework import status, generics
+from rest_framework.pagination import LimitOffsetPagination 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -46,6 +47,52 @@ class RetrieveTrendingVideosView(APIView):
 
         return Response({
             'data': serialized_trending_videos.data
+        }, status=status.HTTP_200_OK)
+
+
+class RetrieveSuggestionVideosView(APIView):
+    @extend_schema(
+        summary='Retrieve suggestion videos',
+        description='Get suggestion videos from a video',
+        responses={
+            200: OpenApiResponse(
+                description='Suggestion videos from a video',
+                response=serializers.VideoListSimpleSerializer(many=True)
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(pk=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        video_title_keywords = video.title.split(' ')
+        video_description_keywords = video.description.split(' ')
+        keywords = set(video_title_keywords + video_description_keywords)
+
+        suggestion_videos = Video.objects.none()
+
+        for keyword in keywords:
+            suggestion_videos |= Video.objects.filter(title__icontains=keyword) | Video.objects.filter(description__icontains=keyword)
+
+        suggestion_videos = Video.objects.exclude(pk=video.id)
+
+        serialized_suggestion_videos = serializers.VideoListSimpleSerializer(suggestion_videos, many=True)
+
+        return Response({
+            'data': serialized_suggestion_videos.data
         }, status=status.HTTP_200_OK)
 
 

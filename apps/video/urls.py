@@ -8,6 +8,7 @@ urlpatterns = [
     path('trending/', views.RetrieveTrendingVideosView.as_view(), name='trending_videos'),
     path('channel/<int:channel_id>/', views.RetrieveChannelVideosView.as_view(), name='channel_videos'),
     path('<int:video_id>/', views.RetrieveVideoDetailsView.as_view(), name='video_details'),
+    path('<int:video_id>/suggestions/', views.RetrieveSuggestionVideosView.as_view(), name='suggestion_videos'),
     path('<int:video_id>/like/', views.LikeVideoView.as_view(), name='like_video'),
     path('<int:video_id>/dislike/', views.DislikeVideoView.as_view(), name='dislike_video'),
     path('<int:video_id>/viewed/', views.AddVisitToVideoView.as_view(), name='visit_to_video'),
