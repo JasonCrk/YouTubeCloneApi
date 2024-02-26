@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Youtube Clone (API)
-  version: 0.0.0
+  version: 1.0.0
 paths:
   /api/auth/jwt/create/:
     post:
@@ -526,6 +526,104 @@ paths:
   /api/channels/{channel_id}/delete/:
     delete:
       operationId: channels_delete_destroy
+      description: User can delete a channel
+      summary: Delete channel
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel deleted successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The channel is not yours
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Cannot delete current channel
+  /api/channels/{channel_id}/subscribe/:
+    post:
+      operationId: channels_subscribe_create
+      description: A channel subscribes to another channel and remove the subscription
+      summary: Subscribe channel
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - channels
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel subscribe to channel or remove channel subscription
+            successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel cannot subscribe to itself
+  /api/channels/{channel_id}/switch/:
+    post:
+      operationId: channels_switch_create
+      description: Switch to another channel that you own
+      summary: Switch channel
       parameters:
       - in: path
         name: channel_id
@@ -538,10 +636,30 @@ paths:
       - jwtAuth: []
       responses:
         '204':
-          description: No response body
+          description: Channel change successful
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: You are not the owner of this channel
   /api/channels/by-handle/{channel_handle}/:
     get:
       operationId: channels_by_handle_retrieve
+      description: Get the detail of a channel by its handle
+      summary: Retrieve channel details by handle
       parameters:
       - in: path
         name: channel_handle
@@ -555,16 +673,30 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
-  /api/channels/by-id/{id}:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelDetails'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: ''
+  /api/channels/by-id/{channel_id}/:
     get:
       operationId: channels_by_id_retrieve
+      description: Get the detail of a channel by its id
+      summary: Retrieve channel details by channel id
       parameters:
       - in: path
-        name: id
+        name: channel_id
         schema:
           type: integer
-        description: A unique integer value identifying this channel.
         required: true
       tags:
       - channels
@@ -578,29 +710,143 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChannelDetails'
           description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: ''
   /api/channels/create/:
     post:
       operationId: channels_create_create
+      description: Create a channel
+      summary: Create channel
       tags:
       - channels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChannel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateChannel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateChannel'
+        required: true
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel has been created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
   /api/channels/edit/:
     patch:
       operationId: channels_edit_partial_update
+      description: User can edit their current channel
+      summary: Edit channel
+      tags:
+      - channels
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateChannel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateChannel'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Successful update
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      handle:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: array
+                        items:
+                          type: string
+                      contact_email:
+                        type: array
+                        items:
+                          type: string
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      banner:
+                        type: array
+                        items:
+                          type: string
+                      picture:
+                        type: array
+                        items:
+                          type: string
+          description: Data is invalid
+  /api/channels/own/:
+    get:
+      operationId: channels_own_retrieve
+      description: Get a list of channels that belong to the authenticated user
+      summary: Retrieve own channel from authenticated user
       tags:
       - channels
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelList'
+          description: ''
   /api/channels/search/:
     get:
       operationId: channels_search_retrieve
+      summary: Search channels
       tags:
       - channels
       security:
@@ -608,56 +854,44 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
-  /api/channels/subscribe/:
-    post:
-      operationId: channels_subscribe_create
-      tags:
-      - channels
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Search query is required
   /api/channels/subscribed/:
     get:
       operationId: channels_subscribed_retrieve
+      summary: Retrieve subscribed channels
       tags:
       - channels
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
-  /api/channels/switch/:
-    post:
-      operationId: channels_switch_create
-      tags:
-      - channels
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/comments/{comment_id}/create/:
-    post:
-      operationId: comments_create_create_2
-      parameters:
-      - in: path
-        name: comment_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - comments
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChannelSimpleRepresentation'
+          description: ''
   /api/comments/{comment_id}/delete/:
     delete:
       operationId: comments_delete_destroy
+      description: A Channel can delete a comment
+      summary: Delete comment
       parameters:
       - in: path
         name: comment_id
@@ -669,11 +903,118 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                description: Comment deleted successfully
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Comment does not exist
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: The comment is not yours
+          description: ''
+  /api/comments/{comment_id}/dislike/:
+    post:
+      operationId: comments_dislike_create
+      description: A Channel can add and remove dislike of a comment
+      summary: Dislike comment
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Dislike added or dislike removed
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Comment does not exist
   /api/comments/{comment_id}/edit/:
     put:
       operationId: comments_edit_update
+      description: A Channel can update a comment
+      summary: Edit comment
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpdateComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateComment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Successful update
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Comment does not exist
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The data is invalid
+  /api/comments/{comment_id}/like/:
+    post:
+      operationId: comments_like_create
+      description: A Channel can add and remove like of a comment
+      summary: Like comment
       parameters:
       - in: path
         name: comment_id
@@ -686,10 +1027,28 @@ paths:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Like added or removed
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Comment does not exist
   /api/comments/comment/{comment_id}/:
     get:
       operationId: comments_comment_retrieve
+      description: Get comments from a comment
+      summary: Retrieve comments of comment
       parameters:
       - in: path
         name: comment_id
@@ -703,46 +1062,56 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
-  /api/comments/create/{video_id}/:
+          description: Comments from a comment
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Comment does not exist
+  /api/comments/comment/{comment_id}/create/:
     post:
-      operationId: comments_create_create
+      operationId: comments_comment_create_create
+      description: A Channel can create a new comment from a comment
+      summary: Create comment for a comment
       parameters:
       - in: path
-        name: video_id
+        name: comment_id
         schema:
           type: integer
         required: true
       tags:
       - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentForComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateCommentForComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateCommentForComment'
+        required: true
       security:
       - jwtAuth: []
       responses:
-        '200':
-          description: No response body
-  /api/comments/dislike/:
-    post:
-      operationId: comments_dislike_create
-      tags:
-      - comments
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/comments/like/:
-    post:
-      operationId: comments_like_create
-      tags:
-      - comments
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
+        '201':
+          description: Comment created successfully
+        '404':
+          description: Comment does not exist
+        '400':
+          description: The data is invalid
   /api/comments/video/{video_id}/:
     get:
       operationId: comments_video_retrieve
+      description: Retrieve the comments of a video and these can be sorted by top
+        comments and the newest first
+      summary: Retrieve video comments
       parameters:
       - in: path
         name: video_id
@@ -756,10 +1125,61 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentList'
+          description: Comments from a video
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+  /api/comments/video/{video_id}/create/:
+    post:
+      operationId: comments_video_create_create
+      description: Channel can create a new comment from a video
+      summary: Create video comment
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVideoComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateVideoComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateVideoComment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          description: Comment created successfully
+        '404':
+          description: Video does not exist
+        '400':
+          description: The data is invalid
   /api/links/{link_id}/delete/:
     delete:
       operationId: links_delete_destroy
+      description: A channel can delete a link
+      summary: Delete link
       parameters:
       - in: path
         name: link_id
@@ -771,11 +1191,38 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Link deleted successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link is not yours
   /api/links/{link_id}/edit/:
     put:
       operationId: links_edit_update
+      description: A channel can update a link
+      summary: Edit link
       parameters:
       - in: path
         name: link_id
@@ -784,14 +1231,136 @@ paths:
         required: true
       tags:
       - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLink'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpdateLink'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateLink'
+        required: true
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Link updated successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link does not exist
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      url:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link is not yours
+  /api/links/{link_id}/reposition/:
+    post:
+      operationId: links_reposition_create
+      description: Change the position of a link to the position of another link in
+        the channel
+      summary: Reposition link
+      parameters:
+      - in: path
+        name: link_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepositionLink'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RepositionLink'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RepositionLink'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Link successfully repositioned
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The new position is not a number
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The link is not yours
   /api/links/channel/{channel_id}/:
     get:
       operationId: links_channel_retrieve
+      description: Get the links of a channel
+      summary: Retrieve channel links
       parameters:
       - in: path
         name: channel_id
@@ -805,30 +1374,76 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LinkList'
+          description: Links of a channel
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
   /api/links/create/:
     post:
       operationId: links_create_create
+      description: Get the links of a channel
+      summary: Retrieve channel links
       tags:
       - links
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLink'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateLink'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateLink'
+        required: true
       security:
       - jwtAuth: []
       responses:
-        '200':
-          description: No response body
-  /api/links/reposition/:
-    post:
-      operationId: links_reposition_create
-      tags:
-      - links
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Link created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      url:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
   /api/playlists/{playlist_id}/:
     get:
       operationId: playlists_retrieve
+      description: Get the details of a playlist by ID
+      summary: Retrieve playlist details
       parameters:
       - in: path
         name: playlist_id
@@ -842,10 +1457,34 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistDetails'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: You can't view this playlist, because the playlist is private
   /api/playlists/{playlist_id}/delete/:
     delete:
       operationId: playlists_delete_destroy
+      description: Delete a playlist
+      summary: Delete playlist
       parameters:
       - in: path
         name: playlist_id
@@ -857,11 +1496,38 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist deleted successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist is not yours
   /api/playlists/{playlist_id}/edit/:
     patch:
       operationId: playlists_edit_partial_update
+      description: Edit a playlist
+      summary: Edit playlist
       parameters:
       - in: path
         name: playlist_id
@@ -870,14 +1536,78 @@ paths:
         required: true
       tags:
       - playlists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdatePlaylist'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdatePlaylist'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdatePlaylist'
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist updated successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist does not exist
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      visibility:
+                        type: array
+                        items:
+                          type: string
+                      video_thumbnail:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist is not yours
   /api/playlists/{playlist_id}/save-video/:
     post:
       operationId: playlists_save_video_create
+      description: Save a video to a playlist
+      summary: Save video to playlist
       parameters:
       - in: path
         name: playlist_id
@@ -886,14 +1616,62 @@ paths:
         required: true
       tags:
       - playlists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveVideoToPlaylist'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaveVideoToPlaylist'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaveVideoToPlaylist'
+        required: true
       security:
       - jwtAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video saved successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist or video does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The playlist is not yours
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video ID is not a number or the video is already in the playlist
   /api/playlists/{playlist_id}/videos/:
     get:
       operationId: playlists_videos_retrieve
+      description: Get the videos from a playlist
+      summary: Retrieve playlist videos
       parameters:
       - in: path
         name: playlist_id
@@ -907,10 +1685,36 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlaylistVideoList'
+          description: Videos from a playlist
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: You can't view this playlist, because the playlist is private
   /api/playlists/channel/{channel_id}/:
     get:
       operationId: playlists_channel_retrieve
+      description: Get the playlists of a channel
+      summary: Retrieve channel playlists
       parameters:
       - in: path
         name: channel_id
@@ -924,30 +1728,89 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlaylistList'
+          description: Playlists from a channel
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
   /api/playlists/create/:
     post:
       operationId: playlists_create_create
+      description: Create a new playlist
+      summary: Create playlist
       tags:
       - playlists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylist'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylist'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreatePlaylist'
+        required: true
       security:
       - jwtAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistListSimple'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      visibility:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
   /api/playlists/own/:
     get:
       operationId: playlists_own_retrieve
+      description: Get the own playlists
+      summary: Retrieve own playlists
       tags:
       - playlists
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistListSimple'
+          description: ''
   /api/playlists/video/{playlist_video_id}/remove/:
     delete:
       operationId: playlists_video_remove_destroy
+      description: Remove a video from a playlist
+      summary: Remove video from playlist
       parameters:
       - in: path
         name: playlist_video_id
@@ -959,188 +1822,70 @@ paths:
       security:
       - jwtAuth: []
       responses:
-        '204':
-          description: No response body
-  /api/schema/:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video removed successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Playlist is not yours
+  /api/videos/{video_id}/:
     get:
-      operationId: schema_retrieve
-      description: |-
-        OpenApi3 schema for this API. Format can be selected via content negotiation.
-
-        - YAML: application/vnd.oai.openapi
-        - JSON: application/vnd.oai.openapi+json
+      operationId: videos_retrieve
+      description: Get the details of a video by ID
+      summary: Retrieve video details
       parameters:
-      - in: query
-        name: format
+      - in: path
+        name: video_id
         schema:
-          type: string
-          enum:
-          - json
-          - yaml
-      - in: query
-        name: lang
-        schema:
-          type: string
-          enum:
-          - af
-          - ar
-          - ar-dz
-          - ast
-          - az
-          - be
-          - bg
-          - bn
-          - br
-          - bs
-          - ca
-          - ckb
-          - cs
-          - cy
-          - da
-          - de
-          - dsb
-          - el
-          - en
-          - en-au
-          - en-gb
-          - eo
-          - es
-          - es-ar
-          - es-co
-          - es-mx
-          - es-ni
-          - es-ve
-          - et
-          - eu
-          - fa
-          - fi
-          - fr
-          - fy
-          - ga
-          - gd
-          - gl
-          - he
-          - hi
-          - hr
-          - hsb
-          - hu
-          - hy
-          - ia
-          - id
-          - ig
-          - io
-          - is
-          - it
-          - ja
-          - ka
-          - kab
-          - kk
-          - km
-          - kn
-          - ko
-          - ky
-          - lb
-          - lt
-          - lv
-          - mk
-          - ml
-          - mn
-          - mr
-          - ms
-          - my
-          - nb
-          - ne
-          - nl
-          - nn
-          - os
-          - pa
-          - pl
-          - pt
-          - pt-br
-          - ro
-          - ru
-          - sk
-          - sl
-          - sq
-          - sr
-          - sr-latn
-          - sv
-          - sw
-          - ta
-          - te
-          - tg
-          - th
-          - tk
-          - tr
-          - tt
-          - udm
-          - uk
-          - ur
-          - uz
-          - vi
-          - zh-hans
-          - zh-hant
+          type: integer
+        required: true
       tags:
-      - schema
+      - videos
       security:
       - jwtAuth: []
       - {}
       responses:
         '200':
           content:
-            application/vnd.oai.openapi:
+            application/json:
               schema:
-                type: object
-                additionalProperties: {}
-            application/yaml:
-              schema:
-                type: object
-                additionalProperties: {}
-            application/vnd.oai.openapi+json:
-              schema:
-                type: object
-                additionalProperties: {}
+                $ref: '#/components/schemas/VideoDetails'
+          description: Video details
+        '404':
+          content:
             application/json:
               schema:
                 type: object
-                additionalProperties: {}
-          description: ''
-  /api/videos/{video_id}/:
-    get:
-      operationId: videos_retrieve
-      parameters:
-      - in: path
-        name: video_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - videos
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
   /api/videos/{video_id}/delete/:
     delete:
       operationId: videos_delete_destroy
-      parameters:
-      - in: path
-        name: video_id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - videos
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/videos/{video_id}/edit/:
-    patch:
-      operationId: videos_edit_partial_update
+      description: Delete a video
+      summary: Delete video
       parameters:
       - in: path
         name: video_id
@@ -1153,10 +1898,178 @@ paths:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
-  /api/videos/{video_id}/viewed/:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video deleted successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video is not yours
+  /api/videos/{video_id}/dislike/:
     post:
-      operationId: videos_viewed_create
+      operationId: videos_dislike_create
+      description: Add or remove a dislike from a video
+      summary: Dislike video
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Dislike added or dislike removed successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+  /api/videos/{video_id}/edit/:
+    patch:
+      operationId: videos_edit_partial_update
+      description: Edit a video
+      summary: Edit video
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateVideo'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateVideo'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video updated successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video is not yours
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: array
+                        items:
+                          type: string
+                      thumbnail:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
+  /api/videos/{video_id}/like/:
+    post:
+      operationId: videos_like_create
+      description: Add or remove a like from a video
+      summary: Like video
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Like added or like removed successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+  /api/videos/{video_id}/suggestions/:
+    get:
+      operationId: videos_suggestions_retrieve
+      description: Get suggestion videos from a video
+      summary: Retrieve suggestion videos
       parameters:
       - in: path
         name: video_id
@@ -1170,10 +2083,55 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoListSimple'
+          description: Suggestion videos from a video
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
+  /api/videos/{video_id}/viewed/:
+    post:
+      operationId: videos_viewed_create
+      description: Increase the number of views of a video by one
+      summary: Add visit to video
+      parameters:
+      - in: path
+        name: video_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: View added
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video does not exist
   /api/videos/channel/{channel_id}/:
     get:
       operationId: videos_channel_retrieve
+      description: Get videos from a channel
+      summary: Retrieve channel videos
       parameters:
       - in: path
         name: channel_id
@@ -1187,40 +2145,112 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoListSimple'
+          description: Videos from a channel
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Channel does not exist
   /api/videos/create/:
     post:
       operationId: videos_create_create
+      description: Create a new video
+      summary: Create video
       tags:
       - videos
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateVideo'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateVideo'
+        required: true
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
-  /api/videos/dislike/:
-    post:
-      operationId: videos_dislike_create
-      tags:
-      - videos
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/videos/like/:
-    post:
-      operationId: videos_like_create
-      tags:
-      - videos
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: Video uploaded successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    properties:
+                      title:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: array
+                        items:
+                          type: string
+                      video:
+                        type: array
+                        items:
+                          type: string
+                      thumbnail:
+                        type: array
+                        items:
+                          type: string
+          description: The data is invalid
   /api/videos/search/:
     get:
       operationId: videos_search_retrieve
+      description: 'Search videos by video title, in addition to having options to
+        sort by: publication date, views and likes, and filter by dates, such as:
+        last minute, today, this week, this month and this year'
+      summary: Search videos
+      parameters:
+      - in: query
+        name: search_query
+        schema:
+          type: string
+          minLength: 1
+        required: true
+      - in: query
+        name: sort_by
+        schema:
+          type: string
+          enum:
+          - rating
+          - upload_date
+          - view_count
+          minLength: 1
+        required: true
+      - in: query
+        name: upload_date
+        schema:
+          type: string
+          enum:
+          - last_hour
+          - this_month
+          - this_week
+          - this_year
+          - today
+          minLength: 1
+        required: true
       tags:
       - videos
       security:
@@ -1228,7 +2258,42 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoList'
+          description: Searched videos
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: The search query is required
+  /api/videos/trending/:
+    get:
+      operationId: videos_trending_retrieve
+      description: Get all videos sorted by likes, views and comments sorted from
+        highest to lowest
+      summary: Retrieve trending videos
+      tags:
+      - videos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoListSimple'
+          description: Trending videos
 components:
   schemas:
     Activation:
@@ -1277,7 +2342,9 @@ components:
           type: integer
           readOnly: true
         links:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkList'
           readOnly: true
         total_videos:
           type: integer
@@ -1285,14 +2352,170 @@ components:
         total_views:
           type: integer
           readOnly: true
+        subscribed:
+          type: integer
+          readOnly: true
       required:
       - id
       - joined
       - links
       - name
+      - subscribed
       - subscribers
       - total_videos
       - total_views
+    ChannelList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Channel name
+          maxLength: 25
+        handle:
+          type: string
+          maxLength: 28
+        picture_url:
+          type: string
+          format: uri
+          nullable: true
+          title: Avatar image URL
+          maxLength: 200
+        subscribers:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - name
+      - subscribers
+    ChannelSimpleRepresentation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        handle:
+          type: string
+          maxLength: 28
+        picture_url:
+          type: string
+          format: uri
+          nullable: true
+          title: Avatar image URL
+          maxLength: 200
+        name:
+          type: string
+          title: Channel name
+          maxLength: 25
+      required:
+      - id
+      - name
+    CommentList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/CurrentChannel'
+          readOnly: true
+        content:
+          type: string
+        publication_date:
+          type: string
+          format: date-time
+          readOnly: true
+        was_edited:
+          type: boolean
+        likes:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+        dislikes:
+          type: integer
+          readOnly: true
+        liked:
+          type: boolean
+          readOnly: true
+        disliked:
+          type: boolean
+          readOnly: true
+        comments:
+          type: integer
+          readOnly: true
+      required:
+      - channel
+      - comments
+      - content
+      - disliked
+      - dislikes
+      - id
+      - liked
+      - likes
+      - publication_date
+    CreateChannel:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
+    CreateCommentForComment:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+      - content
+    CreateLink:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+      required:
+      - title
+      - url
+    CreatePlaylist:
+      type: object
+      properties:
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+      required:
+      - name
+      - visibility
+    CreateVideo:
+      type: object
+      properties:
+        video:
+          type: string
+          format: uri
+        thumbnail:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+      required:
+      - thumbnail
+      - title
+      - video
+    CreateVideoComment:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+      - content
     CurrentChannel:
       type: object
       properties:
@@ -1315,6 +2538,27 @@ components:
       required:
       - id
       - name
+    LinkList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 15
+        url:
+          type: string
+          format: uri
+          maxLength: 200
+        position:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - id
+      - title
+      - url
     PaginatedUserAccountCreateList:
       type: object
       properties:
@@ -1351,6 +2595,55 @@ components:
       - re_new_password
       - token
       - uid
+    PatchedUpdateChannel:
+      type: object
+      properties:
+        handle:
+          type: string
+          maxLength: 28
+        description:
+          type: string
+          nullable: true
+        contact_email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        name:
+          type: string
+          maxLength: 25
+        banner:
+          type: string
+          format: uri
+        picture:
+          type: string
+          format: uri
+    PatchedUpdatePlaylist:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        video_thumbnail:
+          type: integer
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+    PatchedUpdateVideo:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 45
+        description:
+          type: string
+          nullable: true
+        thumbnail:
+          type: string
+          format: uri
     PatchedUserAccountCreate:
       type: object
       properties:
@@ -1367,6 +2660,112 @@ components:
           maxLength: 25
         current_channel:
           $ref: '#/components/schemas/CurrentChannel'
+    PlaylistDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        thumbnail:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          nullable: true
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - thumbnail
+      - updated_at
+    PlaylistList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        thumbnail:
+          type: string
+          readOnly: true
+        first_video_id:
+          type: integer
+          readOnly: true
+        number_videos:
+          type: integer
+          readOnly: true
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - first_video_id
+      - id
+      - name
+      - number_videos
+      - thumbnail
+      - updated_at
+    PlaylistListSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+      required:
+      - id
+      - name
+    PlaylistVideoList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        position:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        video:
+          allOf:
+          - $ref: '#/components/schemas/VideoListSimple'
+          readOnly: true
+      required:
+      - id
+      - position
+      - video
+    RepositionLink:
+      type: object
+      properties:
+        new_position:
+          type: integer
+      required:
+      - new_position
+    SaveVideoToPlaylist:
+      type: object
+      properties:
+        video_id:
+          type: integer
+      required:
+      - video_id
     SendEmailReset:
       type: object
       properties:
@@ -1443,6 +2842,26 @@ components:
           writeOnly: true
       required:
       - token
+    UpdateComment:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+      - content
+    UpdateLink:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 15
+        url:
+          type: string
+          format: uri
+          maxLength: 200
+      required:
+      - title
+      - url
     UserAccountCreate:
       type: object
       properties:
@@ -1509,6 +2928,149 @@ components:
           maxLength: 150
       required:
       - new_email
+    VideoDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 45
+        video_url:
+          type: string
+          format: uri
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelList'
+          readOnly: true
+        publication_date:
+          type: string
+          format: date-time
+          readOnly: true
+        views:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+        comments:
+          type: integer
+          readOnly: true
+        likes:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+        dislikes:
+          type: integer
+          readOnly: true
+        liked:
+          type: boolean
+          readOnly: true
+        disliked:
+          type: boolean
+          readOnly: true
+      required:
+      - channel
+      - comments
+      - disliked
+      - dislikes
+      - id
+      - liked
+      - likes
+      - publication_date
+      - title
+      - video_url
+      - views
+    VideoList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 45
+        thumbnail:
+          type: string
+          format: uri
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelSimpleRepresentation'
+          readOnly: true
+        publication_date:
+          type: string
+          format: date-time
+          readOnly: true
+        views:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+        likes:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+      required:
+      - channel
+      - id
+      - likes
+      - publication_date
+      - thumbnail
+      - title
+      - views
+    VideoListSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 45
+        thumbnail:
+          type: string
+          format: uri
+          maxLength: 200
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelSimpleRepresentation'
+          readOnly: true
+        publication_date:
+          type: string
+          format: date-time
+          readOnly: true
+        views:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+      required:
+      - channel
+      - id
+      - publication_date
+      - thumbnail
+      - title
+      - views
+    VisibilityEnum:
+      enum:
+      - PUB
+      - PRI
+      - URL
+      type: string
+      description: |-
+        * `PUB` - public
+        * `PRI` - private
+        * `URL` - only_url
   securitySchemes:
     jwtAuth:
       type: http
