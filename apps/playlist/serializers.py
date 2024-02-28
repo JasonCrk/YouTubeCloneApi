@@ -67,6 +67,27 @@ class PlaylistListSerializer(serializers.ModelSerializer):
         )
 
 
+class PlaylistToSaveVideoSerializer(serializers.ModelSerializer):
+    video_is_saved = serializers.SerializerMethodField('playlist_video_is_saved')
+
+    def playlist_video_is_saved(self, instance: Playlist) -> bool:
+        video_id = self.context.get('video_id')
+
+        return PlaylistVideo.objects.filter(
+            playlist=instance,
+            video__pk=video_id
+        ).exists()
+
+    class Meta:
+        model = Playlist
+        fields = (
+            'id',
+            'name',
+            'visibility',
+            'video_is_saved'
+        )
+
+
 class PlaylistListSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist

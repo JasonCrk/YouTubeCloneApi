@@ -19,6 +19,16 @@ urlpatterns = [
         name='channel_playlists'
     ),
     path(
+        'video/<int:video_id>/video-saved/',
+        views.RetrieveOwnPlaylistsToSaveVideo.as_view(),
+        name='own_playlists_video_saved'
+    ),
+    path(
+        'video/<int:playlist_video_id>/remove/',
+        views.RemoveVideoFromPlaylistView.as_view(),
+        name='remove_video_from_playlist'
+    ),
+    path(
         '<int:playlist_id>/',
         views.RetrievePlaylistDetailsView.as_view(),
         name='playlist_details'
@@ -42,10 +52,5 @@ urlpatterns = [
         '<int:playlist_id>/delete/',
         views.DeletePlaylistView.as_view(),
         name='delete_playlist'
-    ),
-    path(
-        'video/<int:playlist_video_id>/remove/',
-        views.RemoveVideoFromPlaylistView.as_view(),
-        name='remove_video_from_playlist'
     )
 ]

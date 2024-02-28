@@ -18,6 +18,48 @@ from apps.playlist import serializers
 from apps.playlist.choices import Visibility
 
 
+class RetrieveOwnPlaylistsToSaveVideo(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary='Retrieve own playlists to save video',
+        description='Get the own playlists to save video',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.PlaylistToSaveVideoSerializer
+            ),
+            404: OpenApiResponse(
+                description='Video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, video_id, format=None):
+        try:
+            video = Video.objects.get(pk=video_id)
+        except Video.DoesNotExist:
+            return Response({
+                'message': 'The video does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        created_playlists = Playlist.objects.filter(channel=request.user.current_channel)
+
+        serialized_created_playlists = serializers.PlaylistToSaveVideoSerializer(
+            created_playlists,
+            many=True,
+            context={'video_id': video.pk}
+        )
+
+        return Response({
+            'data': serialized_created_playlists.data
+        }, status=status.HTTP_200_OK)
+
+
 class RetrievePlaylistDetailsView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
