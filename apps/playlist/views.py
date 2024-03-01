@@ -572,11 +572,11 @@ class RemoveVideoFromPlaylistView(APIView):
             )
         }
     )
-    def delete(self, request, playlist_video_id, format=None):
+    def delete(self, request, playlist_id, video_id, format=None):
         try:
             playlist_video: PlaylistVideo = PlaylistVideo.objects\
                 .select_related('playlist__channel')\
-                .get(id=playlist_video_id)
+                .get(video__pk=video_id, playlist__pk=playlist_id)
         except PlaylistVideo.DoesNotExist:
             return Response({
                 'message': 'The playlist video does not exist'
