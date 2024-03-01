@@ -382,12 +382,17 @@ class SaveVideoToPlaylistView(APIView):
                 'message': 'The video is already in the playlist'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        PlaylistVideo.objects.create(
+        new_playlist_video = PlaylistVideo.objects.create(
             video=video,
             playlist=playlist
-        ).save()
+        )
+        new_playlist_video.save()
 
         playlist.updated_at = timezone.now()
+
+        if playlist.video_thumbnail is None:
+            playlist.video_thumbnail = new_playlist_video
+
         playlist.save()
 
         return Response({
