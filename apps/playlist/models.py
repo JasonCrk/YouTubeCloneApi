@@ -67,7 +67,7 @@ class PlaylistVideo(models.Model):
         ordering = ['position']
 
     def delete(self) -> Tuple[int, Dict[str, int]]:
-        if self.playlist.video_thumbnail.pk == self.pk:
+        if self.playlist.video_thumbnail is not None and self.playlist.video_thumbnail.pk == self.pk:
             self.playlist.video_thumbnail = PlaylistVideo.objects.filter(
                 playlist=self.playlist
             ).exclude(pk=self.pk).first()
