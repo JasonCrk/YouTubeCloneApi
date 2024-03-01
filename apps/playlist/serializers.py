@@ -49,7 +49,7 @@ class PlaylistListSerializer(serializers.ModelSerializer):
 
     def playlist_first_video_id(self, instance: Playlist) -> int:
         first_playlist_video = PlaylistVideo.objects.filter(playlist=instance).first()
-        return first_playlist_video.pk if first_playlist_video is not None else None
+        return first_playlist_video.video.pk if first_playlist_video is not None else None
 
     def playlist_number_videos(self, instance: Playlist) -> int:
         return PlaylistVideo.objects.filter(playlist=instance).count()
