@@ -553,7 +553,7 @@ class RemoveVideoFromPlaylistView(APIView):
                 }
             ),
             404: OpenApiResponse(
-                description='Playlist does not exist',
+                description='Playlist video does not exist',
                 response={
                     'type': 'object',
                     'properties': {

@@ -5,8 +5,10 @@ from rest_framework import status
 from tests.setups import APITestCaseWithAuth
 
 from tests.factories.playlist import PlaylistFactory, PlaylistVideoFactory
+from tests.factories.video import VideoFactory
 
 from apps.playlist.models import Playlist, PlaylistVideo
+from apps.video.models import Video
 
 
 class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
@@ -14,7 +16,8 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
         super().setUp()
 
         self.playlist: Playlist = PlaylistFactory.create(channel=self.user.current_channel)
-        self.playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist)
+        self.video: Video = VideoFactory.create(channel=self.user.current_channel)
+        self.playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist, video=self.video)
 
         self.playlist.video_thumbnail = self.playlist_video
         self.playlist.save()
@@ -22,7 +25,7 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
         self.url_name = 'remove_video_from_playlist'
         self.url = reverse(
             self.url_name,
-            kwargs={'playlist_video_id': self.playlist_video.pk}
+            kwargs={'video_id': self.video.pk, 'playlist_id': self.playlist.id}
         )
 
     def test_success_response(self):
@@ -71,7 +74,13 @@ class TestRemoveVideoFromPlaylist(APITestCaseWithAuth):
         """
         not_own_playlist_video: PlaylistVideo = PlaylistVideoFactory.create()
 
-        not_own_playlist_video_url = reverse(self.url_name, kwargs={'playlist_video_id': not_own_playlist_video.pk})
+        not_own_playlist_video_url = reverse(
+            self.url_name,
+            kwargs={
+                'playlist_id': not_own_playlist_video.playlist.pk,
+                'video_id': not_own_playlist_video.video.pk
+            }
+        )
 
         response = self.client.delete(not_own_playlist_video_url)
 
