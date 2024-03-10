@@ -136,6 +136,15 @@ class VideoDetailsSerializer(serializers.ModelSerializer):
         return representation
 
 
+class FirstPlaylistVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = (
+            'id',
+            'thumbnail'
+        )
+
+
 class CreateVideoSerializer(serializers.ModelSerializer):
     video = serializers.FileField()
     thumbnail = serializers.ImageField()

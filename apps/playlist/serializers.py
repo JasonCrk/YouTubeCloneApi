@@ -2,23 +2,37 @@ from rest_framework import serializers
 
 from apps.playlist.models import Playlist, PlaylistVideo
 
-from apps.video.serializers import VideoListSimpleSerializer
+from apps.video.serializers import FirstPlaylistVideoSerializer, VideoListSimpleSerializer
+from apps.channel.serializers import ChannelSimpleRepresentationSerializer
+
+from drf_spectacular.utils import extend_schema_field
 
 
 class PlaylistDetailsSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.SerializerMethodField('selected_video_thumbnail')
+    channel = ChannelSimpleRepresentationSerializer(read_only=True)
+    first_video = serializers.SerializerMethodField('playlist_first_video')
+    total_videos = serializers.SerializerMethodField('playlist_total_videos')
 
-    def selected_video_thumbnail(self, instance: Playlist) -> str:
-        return instance.video_thumbnail.thumbnail if instance.video_thumbnail is not None else None
+    @extend_schema_field(FirstPlaylistVideoSerializer)
+    def playlist_first_video(self, instance: Playlist):
+        if instance.video_thumbnail is None:
+            return None
+
+        return FirstPlaylistVideoSerializer(instance.video_thumbnail.video).data
+
+    def playlist_total_videos(self, instance: Playlist) -> int:
+        return PlaylistVideo.objects.filter(playlist=instance).count()
 
     class Meta:
         model = Playlist
         fields = (
             'id',
             'name',
-            'thumbnail',
+            'first_video',
+            'channel',
             'description',
             'visibility',
+            'total_videos',
             'created_at',
             'updated_at'
         )
