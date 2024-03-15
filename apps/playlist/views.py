@@ -1,5 +1,6 @@
-from django.db.models import Count
+from django.db.models import Count, F
 
+from django.http import HttpResponse
 from django.utils import timezone
 
 from rest_framework import status
@@ -398,6 +399,119 @@ class SaveVideoToPlaylistView(APIView):
         return Response({
             'message': f'Added to {playlist.name}'
         }, status=status.HTTP_201_CREATED)
+
+
+class RepositionPlaylistVideoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary='Reposition playlist video',
+        description='Reposition playlist video',
+        request=inline_serializer(
+            'RepositionPlaylistVideo',
+            fields={
+                'new_position': serializers.serializers.IntegerField()
+            }
+        ),
+        responses={
+            204: OpenApiResponse(
+                description='Playlist video successfully repositioned',
+            ),
+            400: OpenApiResponse(
+                description='The new position is not a number',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='The playlist or playlist video does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description='The playlist or playlist video is not yours',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+        }
+    )
+    def post(self, request, playlist_id, playlist_video_id, format=None):
+        try:
+            new_playlist_video_position = int(request.data.get('new_position'))
+        except:
+            return Response({
+                'message': 'The new position must be a number'
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        try:
+            playlist = Playlist.objects.get(pk=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        current_channel = request.user.current_channel
+
+        if playlist.channel != current_channel:
+            return Response({
+                'message': 'The playlist is not yours'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            playlist_video = PlaylistVideo.objects.get(pk=playlist_video_id, playlist=playlist)
+        except PlaylistVideo.DoesNotExist:
+            return Response({
+                'message': 'The playlist video does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if playlist_video.position == new_playlist_video_position:
+            return Response({
+                'message': 'The new position must not be the same as the playlist video position'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            playlist_video_to_update: PlaylistVideo = PlaylistVideo.objects.get(
+                playlist=playlist,
+                position=new_playlist_video_position
+            )
+        except PlaylistVideo.DoesNotExist:
+            return Response({
+                'message': 'The new position does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        playlist_videos_rearrange = PlaylistVideo.objects.filter(
+            playlist=playlist
+        ).exclude(pk=playlist_video.pk)
+
+        if abs(playlist_video.position - new_playlist_video_position) == 1:
+            playlist_video_to_update.position = playlist_video.position
+            playlist_video_to_update.save()
+        elif playlist_video.position > new_playlist_video_position:
+            playlist_videos_rearrange = playlist_videos_rearrange.filter(
+                position__range=(new_playlist_video_position, playlist_video.position)
+            )
+            playlist_videos_rearrange.update(position=F('position') + 1)
+        else:
+            playlist_videos_rearrange = playlist_videos_rearrange.filter(
+                position__range=(playlist_video.position, new_playlist_video_position)
+            )
+            playlist_videos_rearrange.update(position=F('position') - 1)
+
+        playlist_video.position = new_playlist_video_position
+        playlist_video.save()
+
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
 class EditPlaylistView(APIView):
