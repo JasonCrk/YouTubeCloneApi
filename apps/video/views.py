@@ -3,7 +3,6 @@ from datetime import datetime
 from django.db.models import Q, Count, Sum, Case, When, IntegerField
 
 from rest_framework import status, generics
-from rest_framework.pagination import LimitOffsetPagination 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -79,8 +78,12 @@ class RetrieveSuggestionVideosView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
         video_title_keywords = video.title.split(' ')
-        video_description_keywords = video.description.split(' ')
-        keywords = set(video_title_keywords + video_description_keywords)
+        
+        if video.description is not None:
+            video_description_keywords = video.description.split(' ')
+            keywords = set(video_title_keywords + video_description_keywords)
+        else:
+            keywords = video_title_keywords
 
         suggestion_videos = Video.objects.none()
 
