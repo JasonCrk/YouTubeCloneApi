@@ -511,6 +511,12 @@ class RepositionPlaylistVideoView(APIView):
         playlist_video.position = new_playlist_video_position
         playlist_video.save()
 
+        playlist.video_thumbnail = PlaylistVideo.objects.get(
+            playlist=playlist,
+            position=0
+        )
+        playlist.save()
+
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
 
