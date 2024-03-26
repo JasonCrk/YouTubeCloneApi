@@ -349,3 +349,73 @@ class TestRepositionPlaylistVideo(APITestCaseWithAuth):
 
         self.assertDictEqual(response.data, {'message': 'The new position must be a number'})
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    def test_update_video_thumbnail_of_playlist(self):
+        """
+        Should update the video thumbnail of playlist if the video thumbnail is null
+        and the playlist video position is 0 or the new playlist video position is 0
+        """
+        url = reverse(
+            self.url_name,
+            kwargs={'playlist_id': self.playlist.pk, 'playlist_video_id': self.first_playlist_video.id}
+        )
+
+        self.client.post(
+            url,
+            {
+                'new_position': self.second_playlist_video.position
+            },
+            format='json'
+        )
+
+        playlist_updated = Playlist.objects.get(pk=self.playlist.pk)
+        first_playlist_video = PlaylistVideo.objects.get(position=0, playlist=self.playlist)
+
+        self.assertEqual(playlist_updated.video_thumbnail.pk, first_playlist_video.pk)
+
+    def test_dont_update_video_thumbnail_of_playlist_if_video_thumbnail_exist(self):
+        """
+        Shouldn't update the video thumbnail of playlist if the video thumbnail exist
+        """
+        self.playlist.video_thumbnail = self.first_playlist_video
+        self.playlist.save()
+
+        url = reverse(
+            self.url_name,
+            kwargs={'playlist_id': self.playlist.pk, 'playlist_video_id': self.first_playlist_video.id}
+        )
+
+        self.client.post(
+            url,
+            {
+                'new_position': self.second_playlist_video.position
+            },
+            format='json'
+        )
+
+        playlist_updated = Playlist.objects.get(pk=self.playlist.pk)
+
+        self.assertEqual(self.first_playlist_video.pk, playlist_updated.video_thumbnail.pk)
+
+    def test_dont_update_video_thumbnail_of_playlist_if_playlist_video_position_or_new_playlist_video_position(self):
+        """
+        Shouldn't update the video thumbnail of playlist if the playlist video position is 0 or the new playlist video position is 0
+        """
+        third_playlist_video: PlaylistVideo = PlaylistVideoFactory.create(playlist=self.playlist)
+
+        url = reverse(
+            self.url_name,
+            kwargs={'playlist_id': self.playlist.pk, 'playlist_video_id': self.second_playlist_video.id}
+        )
+
+        self.client.post(
+            url,
+            {
+                'new_position': third_playlist_video.position
+            },
+            format='json'
+        )
+
+        playlist_updated = Playlist.objects.get(pk=self.playlist.pk)
+
+        self.assertIsNone(playlist_updated.video_thumbnail)
