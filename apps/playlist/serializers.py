@@ -45,6 +45,24 @@ class PlaylistDetailsSerializer(serializers.ModelSerializer):
         )
 
 
+class PlaylistSimpleSerializer(serializers.ModelSerializer):
+    channel = ChannelSimpleRepresentationSerializer(read_only=True)
+    total_videos = serializers.SerializerMethodField('playlist_total_videos')
+
+    def playlist_total_videos(self, instance: Playlist) -> int:
+        return PlaylistVideo.objects.filter(playlist=instance).count()
+
+    class Meta:
+        model = Playlist
+        fields = (
+            'id',
+            'name',
+            'channel',
+            'visibility',
+            'total_videos'
+        )
+
+
 class PlaylistVideoListSerializer(serializers.ModelSerializer):
     video = VideoListSimpleSerializer(read_only=True)
 

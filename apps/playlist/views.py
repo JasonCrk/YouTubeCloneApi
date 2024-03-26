@@ -109,6 +109,55 @@ class RetrievePlaylistDetailsView(APIView):
         return Response(serialized_playlist.data, status=status.HTTP_200_OK)
 
 
+class RetrieveSimplePlaylistView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @extend_schema(
+        summary='Retrieve playlist simple data',
+        description='Get the simple data of a playlist by ID',
+        responses={
+            200: OpenApiResponse(
+                response=serializers.PlaylistSimpleSerializer
+            ),
+            404: OpenApiResponse(
+                description='Playlist does not exist',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            ),
+            401: OpenApiResponse(
+                description="You can't view this playlist, because the playlist is private",
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'message': {'type': 'string'}
+                    }
+                }
+            )
+        }
+    )
+    def get(self, request, playlist_id, format=None):
+        try:
+            playlist = Playlist.objects.get(id=playlist_id)
+        except Playlist.DoesNotExist:
+            return Response({
+                'message': 'The playlist does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if playlist.visibility == Visibility.PRIVATE:
+            if not request.user.is_authenticated or playlist.channel != request.user.current_channel:
+                return Response({
+                    'message': 'You are not authenticated to view this playlist'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+        serialized_playlist = serializers.PlaylistSimpleSerializer(playlist)
+
+        return Response(serialized_playlist.data, status=status.HTTP_200_OK)
+
+
 class RetrieveVideosFromAPlaylistView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 

@@ -29,6 +29,11 @@ urlpatterns = [
         name='playlist_details'
     ),
     path(
+        '<int:playlist_id>/simple/',
+        views.RetrieveSimplePlaylistView.as_view(),
+        name='simple_playlist'
+    ),
+    path(
         '<int:playlist_id>/videos/',
         views.RetrieveVideosFromAPlaylistView.as_view(),
         name='videos_from_a_playlist'
