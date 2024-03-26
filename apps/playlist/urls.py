@@ -39,11 +39,6 @@ urlpatterns = [
         name='save_video_to_playlist'
     ),
     path(
-        '<int:playlist_id>/playlist-video/<int:playlist_video_id>/reposition/',
-        views.RepositionPlaylistVideoView.as_view(),
-        name='reposition_playlist_video'
-    ),
-    path(
         '<int:playlist_id>/edit/',
         views.EditPlaylistView.as_view(),
         name='edit_playlist'
@@ -57,5 +52,10 @@ urlpatterns = [
         '<int:playlist_id>/video/<int:video_id>/remove/',
         views.RemoveVideoFromPlaylistView.as_view(),
         name='remove_video_from_playlist'
-    )
+    ),
+    path(
+        '<int:playlist_id>/playlist-video/<int:playlist_video_id>/reposition/',
+        views.RepositionPlaylistVideoView.as_view(),
+        name='reposition_playlist_video'
+    ),
 ]

@@ -15,7 +15,6 @@ from apps.video.models import Video
 from apps.channel.models import Channel
 
 from apps.playlist import serializers
-
 from apps.playlist.choices import Visibility
 
 
@@ -390,10 +389,6 @@ class SaveVideoToPlaylistView(APIView):
         new_playlist_video.save()
 
         playlist.updated_at = timezone.now()
-
-        if playlist.video_thumbnail is None:
-            playlist.video_thumbnail = new_playlist_video
-
         playlist.save()
 
         return Response({
@@ -508,14 +503,17 @@ class RepositionPlaylistVideoView(APIView):
             )
             playlist_videos_rearrange.update(position=F('position') - 1)
 
+        old_playlist_video_position = playlist_video.position
+
         playlist_video.position = new_playlist_video_position
         playlist_video.save()
 
-        playlist.video_thumbnail = PlaylistVideo.objects.get(
-            playlist=playlist,
-            position=0
-        )
-        playlist.save()
+        if playlist.video_thumbnail is None and (old_playlist_video_position == 0 or new_playlist_video_position == 0):
+            playlist.video_thumbnail = PlaylistVideo.objects.get(
+                playlist=playlist,
+                position=0
+            )
+            playlist.save()
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 

@@ -2,33 +2,40 @@ from rest_framework import serializers
 
 from apps.playlist.models import Playlist, PlaylistVideo
 
-from apps.video.serializers import FirstPlaylistVideoSerializer, VideoListSimpleSerializer
+from apps.video.serializers import VideoListSimpleSerializer
 from apps.channel.serializers import ChannelSimpleRepresentationSerializer
-
-from drf_spectacular.utils import extend_schema_field
 
 
 class PlaylistDetailsSerializer(serializers.ModelSerializer):
     channel = ChannelSimpleRepresentationSerializer(read_only=True)
-    first_video = serializers.SerializerMethodField('playlist_first_video')
+    thumbnail = serializers.SerializerMethodField('playlist_thumbnail')
+    first_video_id = serializers.SerializerMethodField('playlist_first_video_id')
     total_videos = serializers.SerializerMethodField('playlist_total_videos')
 
-    @extend_schema_field(FirstPlaylistVideoSerializer)
-    def playlist_first_video(self, instance: Playlist):
-        if instance.video_thumbnail is None:
+    def playlist_first_video_id(self, instance: Playlist) -> int:
+        try:
+            return PlaylistVideo.objects.get(playlist=instance, position=0).video.pk
+        except PlaylistVideo.DoesNotExist:
             return None
-
-        return FirstPlaylistVideoSerializer(instance.video_thumbnail.video).data
 
     def playlist_total_videos(self, instance: Playlist) -> int:
         return PlaylistVideo.objects.filter(playlist=instance).count()
+
+    def playlist_thumbnail(self, instance: Playlist) -> str:
+        if instance.video_thumbnail is not None:
+            return instance.video_thumbnail.video.thumbnail 
+
+        first_playlist_video = PlaylistVideo.objects.filter(playlist=instance, position=0).first()
+
+        return first_playlist_video.video.thumbnail if first_playlist_video is not None else None
 
     class Meta:
         model = Playlist
         fields = (
             'id',
             'name',
-            'first_video',
+            'first_video_id',
+            'thumbnail',
             'channel',
             'description',
             'visibility',
@@ -51,21 +58,25 @@ class PlaylistVideoListSerializer(serializers.ModelSerializer):
 
 
 class PlaylistListSerializer(serializers.ModelSerializer):
-    thumbnail = serializers.SerializerMethodField('selected_video_thumbnail')
+    thumbnail = serializers.SerializerMethodField('playlist_thumbnail')
     first_video_id = serializers.SerializerMethodField('playlist_first_video_id')
-    number_videos = serializers.SerializerMethodField('playlist_number_videos')
+    total_videos = serializers.SerializerMethodField('playlist_total_videos')
 
-    def selected_video_thumbnail(self, instance: Playlist) -> str:
-        if instance.video_thumbnail is None:
-            return None
+    def playlist_thumbnail(self, instance: Playlist) -> str:
+        if instance.video_thumbnail is not None:
+            return instance.video_thumbnail.video.thumbnail 
 
-        return instance.video_thumbnail.video.thumbnail
+        first_playlist_video = PlaylistVideo.objects.filter(playlist=instance, position=0).first()
+
+        return first_playlist_video.video.thumbnail if first_playlist_video is not None else None
 
     def playlist_first_video_id(self, instance: Playlist) -> int:
-        first_playlist_video = PlaylistVideo.objects.filter(playlist=instance).first()
-        return first_playlist_video.video.pk if first_playlist_video is not None else None
+        try:
+            return PlaylistVideo.objects.get(playlist=instance, position=0).video.pk
+        except PlaylistVideo.DoesNotExist:
+            return None
 
-    def playlist_number_videos(self, instance: Playlist) -> int:
+    def playlist_total_videos(self, instance: Playlist) -> int:
         return PlaylistVideo.objects.filter(playlist=instance).count()
 
     class Meta:
@@ -75,7 +86,7 @@ class PlaylistListSerializer(serializers.ModelSerializer):
             'name',
             'thumbnail',
             'first_video_id',
-            'number_videos',
+            'total_videos',
             'visibility',
             'updated_at',
         )
