@@ -48,6 +48,13 @@ class PlaylistDetailsSerializer(serializers.ModelSerializer):
 class PlaylistSimpleSerializer(serializers.ModelSerializer):
     channel = ChannelSimpleRepresentationSerializer(read_only=True)
     total_videos = serializers.SerializerMethodField('playlist_total_videos')
+    first_video_id = serializers.SerializerMethodField('playlist_first_video_id')
+
+    def playlist_first_video_id(self, instance: Playlist) -> int:
+        try:
+            return PlaylistVideo.objects.get(playlist=instance, position=0).video.pk
+        except PlaylistVideo.DoesNotExist:
+            return None
 
     def playlist_total_videos(self, instance: Playlist) -> int:
         return PlaylistVideo.objects.filter(playlist=instance).count()
@@ -57,6 +64,7 @@ class PlaylistSimpleSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
+            'first_video_id',
             'channel',
             'visibility',
             'total_videos'
