@@ -3,13 +3,13 @@ FROM python:3.12.2-alpine3.19
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN mkdir -p /home/YoutubeCloneApi/
+RUN mkdir -p /usr/app/
 
-WORKDIR /home/YoutubeCloneApi/
+WORKDIR /usr/app/
 
-COPY . /home/YoutubeCloneApi/
+COPY . /usr/app
 
-COPY requirements.txt /home/YoutubeCloneApi/
+COPY requirements.txt /usr/app
 
 RUN pip install -r requirements.txt --no-cache-dir
 
