@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   youtube_clone_api:
     container_name: youtube_clone_api
@@ -8,23 +6,20 @@ services:
       dockerfile: DockerFile.dev
     ports:
       - "4000:8000"
-    links:
+    depends_on:
       - youtube_clone_db
     volumes:
       - .:/home/YoutubeCloneApi
     command: python manage.py runserver 0.0.0.0:8000
-
   youtube_clone_db:
     image: postgres:16.2-alpine3.19
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=youtube_clone_password
-      - POSTGRES_DB=youtube_clone_api_db
-      - POSTGRES_USER=postgres
-      - DATABASE_HOST=127.0.0.1
+      POSTGRES_PASSWORD: youtube_clone_password
+      POSTGRES_DB: youtube_clone_api_db
+      POSTGRES_USER: postgres
     volumes:
       - youtube-clone-db-data:/var/lib/pgsql/data
-
 volumes:
   youtube-clone-db-data:
